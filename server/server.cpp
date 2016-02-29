@@ -5,10 +5,8 @@
 #include <cstring>
 
 
-Server::Server() :
-    _is_running(false)
+Server::Server()
 {
-
 }
 
 Server::~Server()
@@ -34,10 +32,11 @@ void Server::log(const std::string msg) const
 
 void Server::start_listening()
 {
+    // init socket
     std::memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
+    hints.ai_flags = AI_PASSIVE;
 
     std::string port_str = std::to_string(_port);
     int status;
@@ -49,7 +48,9 @@ void Server::start_listening()
 
     _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     bind(_socket, res->ai_addr, res->ai_addrlen);
-    listen(_socket, 10); // TODO: MAX TO ACCEPT !!!!!!
+
+    // listen
+    listen(_socket, max_connections());
 
     log("Listening port: " + std::to_string(_port));
 
@@ -75,7 +76,7 @@ void Server::start_accepting_connections()
         log("Connected.");
 
         _connections.push_back(new_fd);
-        on_connect(new_fd); // TODO: move logic out of Server
+        on_connect(new_fd); // TODO: make it in the thread ?
 
         break; // TODO: accept multiple clients
     }
@@ -119,11 +120,12 @@ void Server::stop()
     }
 }
 
-void Server::on_connect(int conn_fd)
+int Server::max_connections()
 {
-    char *msg = "Test message";
-    int len, bytes_sent;
+    return _max_connections;
+}
 
-    len = strlen(msg);
-    bytes_sent = send(conn_fd, msg, len, 0);
+void Server::set_max_connections(int max_conn)
+{
+    _max_connections = max_conn;
 }

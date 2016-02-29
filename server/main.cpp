@@ -1,4 +1,4 @@
-#include "server.h"
+#include "httpServer.h"
 
 #include <iostream>
 #include <exception>
@@ -13,11 +13,10 @@ int main(int argc, char **argv)
 
     try
     {
-        Server http_server;
+        HttpServer http_server;
         http_server.set_listening_port(1234);
 
         http_server.start(); // TODO: add start_async
-
     }
     catch (SocketException& e) // TODO: here ?
     {

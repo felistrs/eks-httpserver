@@ -20,7 +20,10 @@ public:
     bool is_running();
     void stop();
 
-    void on_connect(int conn_fd);
+    virtual void on_connect(int conn_fd) = 0;
+
+    int max_connections();
+    void set_max_connections(int max_conn);
 
 private:
     void clean();
@@ -30,13 +33,15 @@ private:
     void start_accepting_connections();
 
 private:
-    bool _is_running = false;
     int _port;
 
     bool _verbose = true;
 
+    bool _is_running = false;
+    int _max_connections = 100;
+
     // socket
-    int _socket;
+    int _socket = 0;
     std::vector<int> _connections;
 
     struct sockaddr_storage their_addr;
