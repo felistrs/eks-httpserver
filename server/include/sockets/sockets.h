@@ -11,10 +11,8 @@
 //#ifdef WIN32
 //#include <winsock.h>
 //#endif
+#else
 
-#endif
-
-#ifndef WIN32
 #include "sockets_unix.h"
 #endif
 

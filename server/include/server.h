@@ -1,11 +1,11 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "sockets.h"
-
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "sockets/sockets.h"
 
 
 class Server {

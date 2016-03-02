@@ -1,8 +1,10 @@
 #include "server.h"
-#include "socket_utils.h"
+
+#include <cstring>
 
 #include <exception>
-#include <cstring>
+
+#include "sockets/socket_utils.h"
 
 
 Server::Server()
@@ -107,14 +109,14 @@ void Server::stop()
 {
     if (_is_running)
     {
-//        close(_socket); // TODO: close connections !!!
-        _socket = 0;
-
         for (auto conn : _connections)
         {
-//            close(conn);
+            shutdown(conn, 2);
         }
         _connections.clear();
+
+        shutdown(_socket, 2);
+        _socket = 0;
 
         _is_running = false; // TODO: _socket == 0 instead
     }
