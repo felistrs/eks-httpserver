@@ -18,7 +18,7 @@ private:
     using buff_t = char;
 
     void read_request(std::istream& in);
-    void read_limited(std::istream& in, std::vector<buff_t> buffer, buff_t delim = '\n');
+    void read_chunk(std::istream& in, std::vector<buff_t>& buffer, buff_t delim = '\n');
 
     void debug_hex(const std::vector<buff_t>& buffer);
 };
