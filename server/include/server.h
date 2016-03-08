@@ -7,32 +7,34 @@
 
 #include "sockets/sockets.h"
 
+namespace srv {
+
 
 class Server {
 public:
     Server();
     virtual ~Server();
 
-    void start();
+    void Start();
     void set_listening_port(int port);
-    void start_async();
+    void StartAsync();
 
-    bool is_running();
-    void stop();
+    bool is_running() const;
+    void Stop();
 
-    virtual void on_connect(int conn_fd) = 0;
+    virtual void OnConnect(int conn_fd) = 0;
 
-    int max_connections();
+    int max_connections() const;
     void set_max_connections(int max_conn);
 
 private:
     void clean();
     void log(const std::string msg) const;
 
-    void start_listening();
-    void start_accepting_connections();
+    void StartListening();
+    void StartAcceptingConnections();
 
-private:
+
     int _port;
 
     bool _verbose = true;
@@ -44,10 +46,12 @@ private:
     int _socket = 0;
     std::vector<int> _connections;
 
-    struct sockaddr_storage their_addr;
-    socklen_t addr_size;
-    addrinfo hints, *res;
-    int new_fd;
+    struct sockaddr_storage _their_addr;
+    socklen_t _addr_size;
+    addrinfo _hints, *_tmp_res;
 };
+
+
+}
 
 #endif

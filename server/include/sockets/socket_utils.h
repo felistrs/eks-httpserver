@@ -5,14 +5,20 @@
 #include <string>
 
 
+namespace srv {
+
+
 class SocketException : public std::exception
 {
 public:
     SocketException(std::string info) :
         info(info) {}
 
-public:
+
     std::string info;
 };
+
+
+}
 
 #endif // SOCKET_UTILS_H

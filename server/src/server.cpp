@@ -7,22 +7,22 @@
 #include "sockets/socket_utils.h"
 
 
+namespace srv {
+
+
 Server::Server()
-{
-}
+{}
 
 Server::~Server()
 {
     if (is_running())
     {
-        stop();
+        Stop();
     }
 }
 
 void Server::clean()
-{
-
-}
+{}
 
 void Server::log(const std::string msg) const
 {
@@ -32,24 +32,24 @@ void Server::log(const std::string msg) const
     }
 }
 
-void Server::start_listening()
+void Server::StartListening()
 {
     // init socket
-    std::memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
+    std::memset(&_hints, 0, sizeof _hints);
+    _hints.ai_family = AF_UNSPEC;
+    _hints.ai_socktype = SOCK_STREAM;
+    _hints.ai_flags = AI_PASSIVE;
 
     std::string port_str = std::to_string(_port);
     int status;
-    if ((status = getaddrinfo(NULL, port_str.c_str(), &hints, &res)) != 0)
+    if ((status = getaddrinfo(NULL, port_str.c_str(), &_hints, &_tmp_res)) != 0)
     {
         std::string info = gai_strerror(status);
         throw SocketException(info);
     }
 
-    _socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    bind(_socket, res->ai_addr, res->ai_addrlen);
+    _socket = socket(_tmp_res->ai_family, _tmp_res->ai_socktype, _tmp_res->ai_protocol);
+    bind(_socket, _tmp_res->ai_addr, _tmp_res->ai_addrlen);
 
     // listen
     listen(_socket, max_connections());
@@ -59,16 +59,16 @@ void Server::start_listening()
     _is_running = true;
 }
 
-void Server::start_accepting_connections()
+void Server::StartAcceptingConnections()
 {
-    socklen_t addr_size = sizeof their_addr;
+    socklen_t addr_size = sizeof _their_addr;
 
     while (true)
     {
         log("Waiting ...");
 
         int new_fd;
-        if ((new_fd = accept(_socket, (struct sockaddr *)&their_addr, &addr_size)) == -1)
+        if ((new_fd = accept(_socket, (struct sockaddr *)&_their_addr, &addr_size)) == -1)
         {
             std::string info = "Accept error : " + std::to_string(errno); // TODO: read string
             throw SocketException(info);
@@ -78,16 +78,16 @@ void Server::start_accepting_connections()
         log("Connected.");
 
         _connections.push_back(new_fd);
-        on_connect(new_fd); // TODO: make it in the thread ?
+        OnConnect(new_fd); // TODO: make it in the thread ?
 
         break; // TODO: accept multiple clients
     }
 }
 
-void Server::start()
+void Server::Start()
 {
-    start_listening();
-    start_accepting_connections();
+    StartListening();
+    StartAcceptingConnections();
 }
 
 void Server::set_listening_port(int port)
@@ -95,17 +95,17 @@ void Server::set_listening_port(int port)
     _port = port;
 }
 
-void Server::start_async()
+void Server::StartAsync()
 {
-
+    // TODO:
 }
 
-bool Server::is_running()
+bool Server::is_running() const
 {
     return _is_running;
 }
 
-void Server::stop()
+void Server::Stop()
 {
     if (_is_running)
     {
@@ -122,7 +122,7 @@ void Server::stop()
     }
 }
 
-int Server::max_connections()
+int Server::max_connections() const
 {
     return _max_connections;
 }
@@ -130,4 +130,6 @@ int Server::max_connections()
 void Server::set_max_connections(int max_conn)
 {
     _max_connections = max_conn;
+}
+
 }

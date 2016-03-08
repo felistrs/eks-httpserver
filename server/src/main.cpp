@@ -1,22 +1,20 @@
-#include "httpServer.h"
-
 #include <exception>
 #include <iostream>
 
-
-// TODO: codestyle !!!
+#include "httpServer.h"
 
 
 int main(int argc, char **argv)
 {
     // TODO: read port from argv
+    using namespace srv;
 
     try
     {
         HttpServer http_server;
         http_server.set_listening_port(1234);
 
-        http_server.start(); // TODO: add start_async
+        http_server.Start(); // TODO: add start_async
     }
     catch (SocketException& e) // TODO: here ?
     {

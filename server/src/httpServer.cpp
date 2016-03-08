@@ -7,6 +7,9 @@
 #include <vector>
 
 
+namespace srv {
+
+
 HttpServer::HttpServer()
 {
 }
@@ -15,7 +18,7 @@ HttpServer::~HttpServer()
 {
 }
 
-void HttpServer::on_connect(int conn_fd)
+void HttpServer::OnConnect(int conn_fd)
 {
     using namespace std;
 
@@ -33,13 +36,13 @@ void HttpServer::on_connect(int conn_fd)
         istream in(&sbuffer);
 
 
-        read_request(in);
+        ReadRequest(in);
 
         break; // TODO: !!!
     }
 }
 
-void HttpServer::read_request(std::istream& in)
+void HttpServer::ReadRequest(std::istream& in)
 {
     using namespace std;
 
@@ -64,8 +67,7 @@ void HttpServer::read_request(std::istream& in)
 void HttpServer::read_chunk(
         std::istream& in,
         std::vector<HttpServer::buff_t>& buffer,
-        HttpServer::buff_t delim
-)
+        HttpServer::buff_t delim) const
 {
     using namespace std;
 
@@ -86,7 +88,7 @@ void HttpServer::read_chunk(
     }
 }
 
-void HttpServer::debug_hex(const std::vector<HttpServer::buff_t> &buffer)
+void HttpServer::debug_hex(const std::vector<HttpServer::buff_t> &buffer) const
 {
     using namespace std;
 
@@ -96,4 +98,7 @@ void HttpServer::debug_hex(const std::vector<HttpServer::buff_t> &buffer)
         cout << unsigned(c) << " ";
     }
     cout << dec << endl << endl;
+}
+
+
 }
