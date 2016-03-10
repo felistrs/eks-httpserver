@@ -15,20 +15,25 @@ public:
     HttpServer();
     virtual ~HttpServer();
 
-    void OnConnect(int conn_fd);
+    void OnConnect(std::shared_ptr<Socket> sock) override;
 
 private:
-    using buff_t = char;
+    struct package_in {
+        std::vector<Socket::buff_t> request_type;
+        std::vector<Socket::buff_t> request_path;
+        std::vector<Socket::buff_t> request_protocol;
+    };
 
 
-    void ReadRequest(std::istream& in);
+    package_in ReadRequest(std::istream& in);
 
     void read_chunk(
             std::istream& in,
-            std::vector<buff_t>& buffer,
-            buff_t delim = '\n') const;
+            std::vector<Socket::buff_t>& buffer,
+            Socket::buff_t delim = '\n') const;
 
-    void debug_hex(const std::vector<buff_t>& buffer) const;
+    void debug_hex(const std::vector<Socket::buff_t>& buffer) const;
+    void debug_string(const std::vector<Socket::buff_t>& buffer) const;
 };
 
 

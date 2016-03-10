@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "sockets/sockets.h"
+#include "sockets/socket.h"
+
 
 namespace srv {
 
@@ -22,7 +23,7 @@ public:
     bool is_running() const;
     void Stop();
 
-    virtual void OnConnect(int conn_fd) = 0;
+    virtual void OnConnect(std::shared_ptr<Socket> sock) = 0;
 
     int max_connections() const;
     void set_max_connections(int max_conn);
@@ -43,12 +44,10 @@ private:
     int _max_connections = 100;
 
     // socket
-    int _socket = 0;
-    std::vector<int> _connections;
+    std::shared_ptr<Socket> _main_sock;
 
-    struct sockaddr_storage _their_addr;
-    socklen_t _addr_size;
-    addrinfo _hints, *_tmp_res;
+//    int _socket = 0;
+    std::vector<std::shared_ptr<Socket>> _connections;
 };
 
 

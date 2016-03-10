@@ -1,6 +1,7 @@
 #include "httpServer.h"
 
 #include <cstring>
+#include <cctype>
 
 #include <iostream>
 #include <sstream>
@@ -11,63 +12,66 @@ namespace srv {
 
 
 HttpServer::HttpServer()
-{
-}
+{}
 
 HttpServer::~HttpServer()
-{
-}
+{}
 
-void HttpServer::OnConnect(int conn_fd)
+void HttpServer::OnConnect(std::shared_ptr<Socket> sock)
 {
     using namespace std;
 
-    ssize_t buffer_sz = 1024;
-    vector<buff_t> buffer(buffer_sz);
+    istream& in_str = sock->InStream();
 
     while (true) {
-        // TODO: move to socket wrapper
-        ssize_t read_sz = recv(conn_fd, buffer.data(), buffer_sz, 0);
-        cout << "Read buffer sz: " << read_sz << endl;
-
-        stringbuf sbuffer;
-        sbuffer.sputn(buffer.data(), read_sz);
-
-        istream in(&sbuffer);
-
-
-        ReadRequest(in);
+        ReadRequest(in_str);
 
         break; // TODO: !!!
     }
 }
 
-void HttpServer::ReadRequest(std::istream& in)
+HttpServer::package_in HttpServer::ReadRequest(std::istream& in)
 {
     using namespace std;
 
-    vector<buff_t> request_type;
-    read_chunk(in, request_type, ' ');
-    cout << "Read sz: " << request_type.size() << endl;
-    debug_hex(request_type);
+    package_in package;
 
-    vector<buff_t> request_path;
-    read_chunk(in, request_path, ' ');
-    cout << "Read sz: " << request_path.size() << endl;
-    debug_hex(request_path);
+    read_chunk(in, package.request_type, ' ');
+    cout << "Read sz: " << package.request_type.size() << endl;
+    debug_hex(package.request_type);
+    debug_string(package.request_type);
 
-    vector<buff_t> request_protocol;
-    read_chunk(in, request_protocol);
-    cout << "Read sz: " << request_protocol.size() << endl;
-    debug_hex(request_protocol);
+    read_chunk(in, package.request_path, ' ');
+    cout << "Read sz: " << package.request_path.size() << endl;
+    debug_hex(package.request_path);
+    debug_string(package.request_path);
+
+    read_chunk(in, package.request_protocol);
+    cout << "Read sz: " << package.request_protocol.size() << endl;
+    debug_hex(package.request_protocol);
+    debug_string(package.request_protocol);
+
+
+//    vector<buff_t> line;
+//    read_chunk(in, line);
+
+//    while (line.size() && !(line.size() == 1 && line[0] == '\r'))
+//    {
+//        debug_hex(line);
+//        debug_string(line);
+
+//        read_chunk(in, line);
+//    }
 
 //  ...
+
+    return package;
 }
 
 void HttpServer::read_chunk(
         std::istream& in,
-        std::vector<HttpServer::buff_t>& buffer,
-        HttpServer::buff_t delim) const
+        std::vector<Socket::buff_t>& buffer,
+        Socket::buff_t delim) const
 {
     using namespace std;
 
@@ -77,7 +81,7 @@ void HttpServer::read_chunk(
            in.peek() != '\n' &&
            in.peek() != EOF)
     {
-        buffer.push_back( (buff_t)in.get() );
+        buffer.push_back( (Socket::buff_t)in.get() );
     }
 
     in.get();
@@ -88,7 +92,7 @@ void HttpServer::read_chunk(
     }
 }
 
-void HttpServer::debug_hex(const std::vector<HttpServer::buff_t> &buffer) const
+void HttpServer::debug_hex(const std::vector<Socket::buff_t> &buffer) const
 {
     using namespace std;
 
@@ -98,6 +102,17 @@ void HttpServer::debug_hex(const std::vector<HttpServer::buff_t> &buffer) const
         cout << unsigned(c) << " ";
     }
     cout << dec << endl << endl;
+}
+
+void HttpServer::debug_string(const std::vector<Socket::buff_t> &buffer) const
+{
+    using namespace std;
+
+    std::string str;
+    for (Socket::buff_t c : buffer)
+        if (isprint(c)) str += c;
+
+    cout << str << endl << endl;
 }
 
 
