@@ -5,6 +5,7 @@
 #include <exception>
 
 #include "sockets/socket_utils.h"
+#include "utils/logger.h"
 
 
 namespace srv {
@@ -23,14 +24,6 @@ Server::~Server()
 
 void Server::clean()
 {}
-
-void Server::log(const std::string msg) const
-{
-    if (_verbose)
-    {
-        std::cout << msg << std::endl;
-    }
-}
 
 void Server::StartListening()
 {

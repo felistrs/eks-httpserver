@@ -30,15 +30,12 @@ public:
 
 private:
     void clean();
-    void log(const std::string msg) const;
 
     void StartListening();
     void StartAcceptingConnections();
 
 
     int _port;
-
-    bool _verbose = true;
 
     bool _is_running = false;
     int _max_connections = 100;

@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "sockets/socket_utils.h"
+#include "utils/logger.h"
 
 
 namespace srv {
@@ -61,7 +62,7 @@ void Socket::StartListening(int max_connections)
     listen(_descriptor, max_connections);
 
     // log("Listening port: " + std::to_string(_port));
-    std::cout << "Listening port: " << std::to_string(_port) << std::endl;
+    log( "Listening port: " + std::to_string(_port) );
 }
 
 std::shared_ptr<Socket> Socket::Accept()
