@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "sockets/socket.h"
+#include "commandProcessor.h"
 
 
 namespace srv {
@@ -18,7 +19,7 @@ public:
 
     void Start();
     void set_listening_port(int port);
-    void StartAsync();
+    void StartAsync(); // TODO: !!!
 
     bool is_running() const;
     void Stop();
@@ -27,6 +28,12 @@ public:
 
     int max_connections() const;
     void set_max_connections(int max_conn);
+
+    void set_command_processor(CommandProcessor* processor);
+
+protected:
+    // commands
+    std::unique_ptr<CommandProcessor> _comm_processor;
 
 private:
     void clean();
@@ -42,9 +49,8 @@ private:
 
     // socket
     std::shared_ptr<Socket> _main_sock;
-
-//    int _socket = 0;
     std::vector<std::shared_ptr<Socket>> _connections;
+
 };
 
 

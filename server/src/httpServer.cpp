@@ -28,15 +28,23 @@ void HttpServer::OnConnect(std::shared_ptr<Socket> sock)
     while (true) {
         ReadRequest(in_str);
 
-        break; // TODO: !!!
+        if (_comm_processor)
+        {
+            std::unique_ptr<Command> command(new Command);
+            _comm_processor->add(std::move(command));
+            _comm_processor->processCommands();
+        }
+
+        sock->Close();
+        break;  // TODO: !!!
     }
 }
 
-HttpServer::package_in HttpServer::ReadRequest(std::istream& in)
+HttpRequest HttpServer::ReadRequest(std::istream& in)
 {
     using namespace std;
 
-    package_in package;
+    HttpRequest package;
 
     read_chunk(in, package.request_type, ' ');
     debug_string(package.request_type);

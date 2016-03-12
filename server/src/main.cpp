@@ -1,7 +1,9 @@
 #include <exception>
 #include <iostream>
+#include <memory>
 
 #include "httpServer.h"
+#include "ftp_over_http/ftpCommandProcessor.h"
 
 
 int main(int argc, char **argv)
@@ -13,6 +15,7 @@ int main(int argc, char **argv)
     {
         HttpServer http_server;
         http_server.set_listening_port(1234);
+        http_server.set_command_processor(new FtpCommandProcessor());
 
         http_server.Start(); // TODO: add start_async
     }

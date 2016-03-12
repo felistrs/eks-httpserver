@@ -100,4 +100,10 @@ void Server::set_max_connections(int max_conn)
     _max_connections = max_conn;
 }
 
+void Server::set_command_processor(CommandProcessor* processor)
+{
+    _comm_processor = std::unique_ptr<CommandProcessor>(processor);
+}
+
+
 }

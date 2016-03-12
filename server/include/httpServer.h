@@ -3,11 +3,21 @@
 
 #include "server.h"
 
-#include <utility>
+#include <memory>
 #include <string>
+#include <utility>
 
 
 namespace srv {
+
+
+struct HttpRequest {
+    std::string request_type;
+    std::string path;
+    std::string protocol;
+
+    std::vector<std::string> other;
+};
 
 
 class HttpServer : public Server
@@ -19,16 +29,7 @@ public:
     void OnConnect(std::shared_ptr<Socket> sock) override;
 
 private:
-    struct package_in {
-        std::string request_type;
-        std::string path;
-        std::string protocol;
-
-        std::vector<std::string> other;
-    };
-
-
-    package_in ReadRequest(std::istream& in);
+    HttpRequest ReadRequest(std::istream& in);
 
     void read_chunk(
             std::istream& in,
