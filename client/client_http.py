@@ -6,7 +6,7 @@ import http.client
 # address = "example.com"
 address = "127.0.0.1:1234"
 
-conn = http.client.HTTPSConnection(address)
+conn = http.client.HTTPConnection(address)
 conn.request("GET", "/")
 r = conn.getresponse()
 print(r.status, r.reason)

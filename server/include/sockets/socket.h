@@ -22,8 +22,6 @@ public:
     Socket(const Socket& s) = delete;
     Socket& operator =(const Socket s) = delete;
 
-    using buff_t = char;
-
 
     void InitForLocalListening(int port);
     void StartListening(int max_connections);
@@ -44,7 +42,7 @@ private:
 
     const ssize_t c_read_buffer_sz = 2048; // ???
     std::stringbuf _sbuffer;
-    std::vector<buff_t> _read_buffer;
+    std::vector<char> _read_buffer;
 
     std::shared_ptr<std::istream> _istream;
 

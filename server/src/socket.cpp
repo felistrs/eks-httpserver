@@ -2,7 +2,9 @@
 
 #include <cstring>
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "sockets/socket_utils.h"
 #include "utils/logger.h"
@@ -60,8 +62,6 @@ void Socket::InitForLocalListening(int port)
 void Socket::StartListening(int max_connections)
 {
     listen(_descriptor, max_connections);
-
-    // log("Listening port: " + std::to_string(_port));
     log( "Listening port: " + std::to_string(_port) );
 }
 
@@ -96,7 +96,7 @@ void Socket::Close()
 
 void Socket::init()
 {
-    _read_buffer = std::vector<buff_t>(c_read_buffer_sz);
+    _read_buffer = std::vector<char>(c_read_buffer_sz);
 }
 
 void Socket::read_buffer()
@@ -104,6 +104,9 @@ void Socket::read_buffer()
     ssize_t read_sz = recv(_descriptor, _read_buffer.data(),
                            c_read_buffer_sz, 0);
     std::cout << "Read buffer sz: " << read_sz << std::endl;
+    debug_hex(_read_buffer);
+    debug_string(_read_buffer);
+    std::cout << std::endl;
 
     _sbuffer.sputn(_read_buffer.data(), read_sz);
 

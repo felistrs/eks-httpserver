@@ -4,6 +4,7 @@
 #include "server.h"
 
 #include <utility>
+#include <string>
 
 
 namespace srv {
@@ -19,9 +20,11 @@ public:
 
 private:
     struct package_in {
-        std::vector<Socket::buff_t> request_type;
-        std::vector<Socket::buff_t> request_path;
-        std::vector<Socket::buff_t> request_protocol;
+        std::string request_type;
+        std::string path;
+        std::string protocol;
+
+        std::vector<std::string> other;
     };
 
 
@@ -29,11 +32,9 @@ private:
 
     void read_chunk(
             std::istream& in,
-            std::vector<Socket::buff_t>& buffer,
-            Socket::buff_t delim = '\n') const;
+            std::string& buffer,
+            char delim = '\n') const;
 
-    void debug_hex(const std::vector<Socket::buff_t>& buffer) const;
-    void debug_string(const std::vector<Socket::buff_t>& buffer) const;
 };
 
 

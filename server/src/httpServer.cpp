@@ -7,6 +7,8 @@
 #include <sstream>
 #include <vector>
 
+#include "utils/logger.h"
+
 
 namespace srv {
 
@@ -37,41 +39,35 @@ HttpServer::package_in HttpServer::ReadRequest(std::istream& in)
     package_in package;
 
     read_chunk(in, package.request_type, ' ');
-    cout << "Read sz: " << package.request_type.size() << endl;
-    debug_hex(package.request_type);
     debug_string(package.request_type);
 
-    read_chunk(in, package.request_path, ' ');
-    cout << "Read sz: " << package.request_path.size() << endl;
-    debug_hex(package.request_path);
-    debug_string(package.request_path);
+    read_chunk(in, package.path, ' ');
+    debug_string(package.path);
 
-    read_chunk(in, package.request_protocol);
-    cout << "Read sz: " << package.request_protocol.size() << endl;
-    debug_hex(package.request_protocol);
-    debug_string(package.request_protocol);
+    read_chunk(in, package.protocol);
+    debug_string(package.protocol);
 
 
-//    vector<buff_t> line;
-//    read_chunk(in, line);
+    string line;
+    read_chunk(in, line);
 
-//    while (line.size() && !(line.size() == 1 && line[0] == '\r'))
-//    {
-//        debug_hex(line);
-//        debug_string(line);
+    while (!line.empty() && line != "\r")
+    {
+        debug_hex(line);
+        debug_string(line);
 
-//        read_chunk(in, line);
-//    }
+        read_chunk(in, line);
 
-//  ...
+        package.other.push_back(line); // TODO: parse for more functionality
+    }
 
     return package;
 }
 
 void HttpServer::read_chunk(
         std::istream& in,
-        std::vector<Socket::buff_t>& buffer,
-        Socket::buff_t delim) const
+        std::string& buffer,
+        char delim) const
 {
     using namespace std;
 
@@ -81,7 +77,7 @@ void HttpServer::read_chunk(
            in.peek() != '\n' &&
            in.peek() != EOF)
     {
-        buffer.push_back( (Socket::buff_t)in.get() );
+        buffer.push_back( (char)in.get() );
     }
 
     in.get();
@@ -90,29 +86,6 @@ void HttpServer::read_chunk(
     {
         while (in.peek() == ' ') in.get();
     }
-}
-
-void HttpServer::debug_hex(const std::vector<Socket::buff_t> &buffer) const
-{
-    using namespace std;
-
-    cout << hex;
-
-    for (auto c : buffer) {
-        cout << unsigned(c) << " ";
-    }
-    cout << dec << endl << endl;
-}
-
-void HttpServer::debug_string(const std::vector<Socket::buff_t> &buffer) const
-{
-    using namespace std;
-
-    std::string str;
-    for (Socket::buff_t c : buffer)
-        if (isprint(c)) str += c;
-
-    cout << str << endl << endl;
 }
 
 
