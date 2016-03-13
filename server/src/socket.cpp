@@ -18,80 +18,77 @@ Socket::Socket()
     init();
 }
 
-Socket::Socket(int descriptor) :
+Socket::Socket(socket_t descriptor) :
     _descriptor(descriptor)
 {
     init();
 }
 
-//Socket::Socket(const Socket &s)
-//{
-//    _descriptor = s._descriptor;
-//}
-
-//Socket &Socket::operator =(const Socket s)
-//{
-//    _descriptor = s._descriptor;
-//}
-
-void Socket::InitForLocalListening(int port)
+socket_t Socket::SocketForLocalListening(int port)
 {
-    _port = port;
+    socket_t descriptor;
+
+    addrinfo hints;
+    addrinfo  *tmp_res;
 
     // init socket
-    std::memset(&_hints, 0, sizeof _hints);
-    _hints.ai_family = AF_UNSPEC;
-    _hints.ai_socktype = SOCK_STREAM;
-    _hints.ai_flags = AI_PASSIVE;
+    std::memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
 
     std::string port_str = std::to_string(port);
     int status;
-    if ((status = getaddrinfo(NULL, port_str.c_str(), &_hints, &_tmp_res)) != 0)
+    if ((status = getaddrinfo(NULL, port_str.c_str(), &hints, &tmp_res)) != 0)
     {
         std::string info = gai_strerror(status);
         throw SocketException(info);
     }
 
-    _descriptor = socket(
-                _tmp_res->ai_family,
-                _tmp_res->ai_socktype,
-                _tmp_res->ai_protocol);
+    descriptor = socket(
+                tmp_res->ai_family,
+                tmp_res->ai_socktype,
+                tmp_res->ai_protocol);
+    // TODO: delete tmp_res ?
 
-    if (_descriptor == 0)
+    if (descriptor == 0)
     {
         throw SocketException("Main socket was not created.");
     }
 
     int opt = 1; // TRUE
-    if( setsockopt(_descriptor, SOL_SOCKET, SO_REUSEADDR,
+    if( setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR,
                    (char *)&opt, sizeof(opt)) < 0 )
     {
         throw SocketException("Not set option for multiple listeners.");
     }
 
-    if ( bind(_descriptor, _tmp_res->ai_addr, _tmp_res->ai_addrlen) < 0)
+    if ( bind(descriptor, tmp_res->ai_addr, tmp_res->ai_addrlen) < 0)
     {
         throw SocketException("Bind failed");
     }
+
+    return descriptor;
 }
 
-void Socket::StartListening(int max_connections)
+void Socket::StartListening(socket_t descriptor, int max_connections)
 {
-    if ( listen(_descriptor, max_connections) < 0 )
+    if ( listen(descriptor, max_connections) < 0 )
     {
         throw SocketException("Listen failed");
     }
 
-    log( "Listening port: " + std::to_string(_port) );
+    log( "Listening... ." );
 }
 
-std::shared_ptr<Socket> Socket::Accept()
+std::shared_ptr<Socket> Socket::Accept(socket_t descriptor)
 {
     int new_fd;
 
+    struct sockaddr_storage _their_addr;
     socklen_t addr_size = sizeof _their_addr;
 
-    if ((new_fd = accept(_descriptor, (struct sockaddr *)&_their_addr, &addr_size)) == -1)
+    if ((new_fd = accept(descriptor, (struct sockaddr *)&_their_addr, &addr_size)) == -1)
     {
         std::string info = "Accept error : " + std::to_string(errno); // TODO: read string
         throw SocketException(info);
@@ -111,7 +108,12 @@ std::istream &Socket::InStream()
 
 void Socket::Close()
 {
-    shutdown(_descriptor, 2);
+    Close(_descriptor);
+}
+
+void Socket::Close(int descriptor)
+{
+    shutdown(descriptor, 2);
 }
 
 void Socket::init()

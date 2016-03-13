@@ -13,6 +13,9 @@
 namespace srv {
 
 
+using socket_t = int;
+
+
 class Socket
 {
 public:
@@ -23,22 +26,22 @@ public:
     Socket& operator =(const Socket s) = delete;
 
 
-    void InitForLocalListening(int port);
-    void StartListening(int max_connections);
-
-    std::shared_ptr<Socket> Accept();
+    static socket_t SocketForLocalListening(int port);
+    static void StartListening(socket_t descriptor, int max_connections);
+    static std::shared_ptr<Socket> Accept(socket_t descriptor);
 
     std::istream& InStream();
 
     void Close();
+    static void Close(socket_t descriptor);
 
 
 private:
-    int _descriptor = 0;
+    void init();
+    void read_buffer();
 
-    struct sockaddr_storage _their_addr;
-    socklen_t _addr_size;
-    addrinfo _hints, *_tmp_res;
+
+    socket_t _descriptor = 0;
 
     const ssize_t c_read_buffer_sz = 2048; // ???
     std::stringbuf _sbuffer;
@@ -46,11 +49,6 @@ private:
 
     std::shared_ptr<std::istream> _istream;
 
-    int _port;
-
-
-    void init();
-    void read_buffer();
 };
 
 

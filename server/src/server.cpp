@@ -27,10 +27,8 @@ void Server::clean()
 
 void Server::StartListening()
 {
-    _main_sock = std::shared_ptr<Socket>(new Socket);
-
-    _main_sock->InitForLocalListening(_port); // TODO: not local.
-    _main_sock->StartListening( max_connections() );
+    _main_sock = Socket::SocketForLocalListening(_port);
+    Socket::StartListening(_main_sock, max_connections());
 
     _is_running = true;
 }
@@ -41,7 +39,7 @@ void Server::StartAcceptingConnections()
     {
         log("Waiting ...");
 
-        auto new_sock = _main_sock->Accept();
+        auto new_sock = Socket::Accept(_main_sock);
 
         // Add new connection
         log("Connected.");
@@ -84,7 +82,7 @@ void Server::Stop()
         }
         _connections.clear();
 
-        _main_sock->Close();
+        Socket::Close(_main_sock);
 
         _is_running = false;
     }

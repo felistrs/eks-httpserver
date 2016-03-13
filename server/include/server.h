@@ -48,7 +48,7 @@ private:
     int _max_connections = 100;
 
     // socket
-    std::shared_ptr<Socket> _main_sock;
+    int _main_sock;
     std::vector<std::shared_ptr<Socket>> _connections;
 
 };
