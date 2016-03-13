@@ -56,12 +56,32 @@ void Socket::InitForLocalListening(int port)
                 _tmp_res->ai_family,
                 _tmp_res->ai_socktype,
                 _tmp_res->ai_protocol);
-    bind(_descriptor, _tmp_res->ai_addr, _tmp_res->ai_addrlen);
+
+    if (_descriptor == 0)
+    {
+        throw SocketException("Main socket was not created.");
+    }
+
+    int opt = 1; // TRUE
+    if( setsockopt(_descriptor, SOL_SOCKET, SO_REUSEADDR,
+                   (char *)&opt, sizeof(opt)) < 0 )
+    {
+        throw SocketException("Not set option for multiple listeners.");
+    }
+
+    if ( bind(_descriptor, _tmp_res->ai_addr, _tmp_res->ai_addrlen) < 0)
+    {
+        throw SocketException("Bind failed");
+    }
 }
 
 void Socket::StartListening(int max_connections)
 {
-    listen(_descriptor, max_connections);
+    if ( listen(_descriptor, max_connections) < 0 )
+    {
+        throw SocketException("Listen failed");
+    }
+
     log( "Listening port: " + std::to_string(_port) );
 }
 

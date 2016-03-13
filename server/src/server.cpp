@@ -49,7 +49,7 @@ void Server::StartAcceptingConnections()
         _connections.push_back(new_sock);
         OnConnect(new_sock); // TODO: make it in the thread ?
 
-        break; // TODO: accept multiple clients
+//        break; // TODO: accept multiple clients
     }
 }
 

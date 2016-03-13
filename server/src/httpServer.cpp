@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "utils/logger.h"
+#include "ftp_over_http/ftpCommand.h" // TODO: remove !
 
 
 namespace srv {
@@ -25,12 +26,14 @@ void HttpServer::OnConnect(std::shared_ptr<Socket> sock)
 
     istream& in_str = sock->InStream();
 
-    while (true) {
-        ReadRequest(in_str);
+    while (true)
+    {
+        HttpRequest request = ReadRequest(in_str);
 
         if (_comm_processor)
         {
-            std::unique_ptr<Command> command(new Command);
+            std::unique_ptr<Command> command(
+                        new FtpCommand(request));
             _comm_processor->add(std::move(command));
             _comm_processor->processCommands();
         }

@@ -10,8 +10,7 @@ public:
     Command() {}
     virtual ~Command() {}
 
-    virtual void run() { std::cout << "Command ... ." << std::endl; }
-    //virtual void run() = 0;
+    virtual void run() = 0;
 };
 
 #endif // COMMAND_H
