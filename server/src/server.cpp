@@ -78,7 +78,7 @@ void Server::Stop()
     {
         for (auto sock : _connections)
         {
-            sock->Close();
+            Socket::Close(sock);
         }
         _connections.clear();
 

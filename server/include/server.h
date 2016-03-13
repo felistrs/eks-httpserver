@@ -24,7 +24,7 @@ public:
     bool is_running() const;
     void Stop();
 
-    virtual void OnConnect(std::shared_ptr<Socket> sock) = 0;
+    virtual void OnConnect(socket_t sock) = 0;
 
     int max_connections() const;
     void set_max_connections(int max_conn);
@@ -48,8 +48,8 @@ private:
     int _max_connections = 100;
 
     // socket
-    int _main_sock;
-    std::vector<std::shared_ptr<Socket>> _connections;
+    socket_t _main_sock;
+    std::vector<socket_t> _connections;
 
 };
 

@@ -26,7 +26,7 @@ public:
     HttpServer();
     virtual ~HttpServer();
 
-    void OnConnect(std::shared_ptr<Socket> sock) override;
+    void OnConnect(socket_t sock) override;
 
 private:
     HttpRequest ReadRequest(std::istream& in);

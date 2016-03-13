@@ -13,17 +13,6 @@
 namespace srv {
 
 
-Socket::Socket()
-{
-    init();
-}
-
-Socket::Socket(socket_t descriptor) :
-    _descriptor(descriptor)
-{
-    init();
-}
-
 socket_t Socket::SocketForLocalListening(int port)
 {
     socket_t descriptor;
@@ -81,7 +70,7 @@ void Socket::StartListening(socket_t descriptor, int max_connections)
     log( "Listening... ." );
 }
 
-std::shared_ptr<Socket> Socket::Accept(socket_t descriptor)
+socket_t Socket::Accept(socket_t descriptor)
 {
     int new_fd;
 
@@ -94,45 +83,12 @@ std::shared_ptr<Socket> Socket::Accept(socket_t descriptor)
         throw SocketException(info);
     }
 
-    return std::shared_ptr<Socket>(new Socket(new_fd));
-}
-
-std::istream &Socket::InStream()
-{
-    if (!_istream) {
-        read_buffer();
-    }
-
-    return *_istream;
-}
-
-void Socket::Close()
-{
-    Close(_descriptor);
+    return new_fd;
 }
 
 void Socket::Close(int descriptor)
 {
     shutdown(descriptor, 2);
-}
-
-void Socket::init()
-{
-    _read_buffer = std::vector<char>(c_read_buffer_sz);
-}
-
-void Socket::read_buffer()
-{
-    ssize_t read_sz = recv(_descriptor, _read_buffer.data(),
-                           c_read_buffer_sz, 0);
-    std::cout << "Read buffer sz: " << read_sz << std::endl;
-    debug_hex(_read_buffer);
-    debug_string(_read_buffer);
-    std::cout << std::endl;
-
-    _sbuffer.sputn(_read_buffer.data(), read_sz);
-
-    _istream = std::make_shared<std::istream>(&_sbuffer);
 }
 
 

@@ -20,11 +20,27 @@ HttpServer::HttpServer()
 HttpServer::~HttpServer()
 {}
 
-void HttpServer::OnConnect(std::shared_ptr<Socket> sock)
+void HttpServer::OnConnect(socket_t sock)
 {
     using namespace std;
 
-    istream& in_str = sock->InStream();
+    // TMP
+    const ssize_t c_read_buffer_sz = 2048; // ???
+    std::stringbuf _sbuffer;
+    std::vector<char> _read_buffer(c_read_buffer_sz);
+
+    ssize_t read_sz = recv(sock, _read_buffer.data(),
+                           c_read_buffer_sz, 0);
+    std::cout << "Read buffer sz: " << read_sz << std::endl;
+    debug_hex(_read_buffer);
+    debug_string(_read_buffer);
+    std::cout << std::endl;
+
+    _sbuffer.sputn(_read_buffer.data(), read_sz);
+
+    istream in_str(&_sbuffer);
+    // END: TMP
+
 
     while (true)
     {
@@ -38,7 +54,7 @@ void HttpServer::OnConnect(std::shared_ptr<Socket> sock)
             _comm_processor->processCommands();
         }
 
-        sock->Close();
+        Socket::Close(sock);
         break;  // TODO: !!!
     }
 }
