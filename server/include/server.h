@@ -10,6 +10,7 @@
 
 #include "sockets/socket.h"
 #include "commandProcessor.h"
+#include "utils/buffer.h"
 
 
 namespace srv {
@@ -20,10 +21,19 @@ public:
     Server();
     virtual ~Server();
 
+
+    struct conn_t {
+        socket_t sock = 0;
+        int state = 0;
+    };
+
+
     void StartAsync();
     void Stop();
 
     virtual void OnConnect(socket_t sock) = 0;
+    virtual void OnCommunication(conn_t& conn) = 0;
+    virtual void OnDisconnect(socket_t sock) = 0;
 
     void set_listening_port(int port);
 
@@ -35,19 +45,18 @@ public:
     void set_command_processor(CommandProcessor* processor);
 
 
-    // Communication thread
-    void DoCommunication();  // TODO: should be moved to private ?
-
 protected:
     // commands
     std::unique_ptr<CommandProcessor> _comm_processor;
+
+    std::shared_ptr<Buffer> ReadBuffer(socket_t sock);
 
 private:
     void clean();
 
     void StartListening();
-    void StartAcceptingConnections();
 
+    void OnCommunication();
     void StopCommunication();
     void CloseAllConnections();
 
@@ -68,7 +77,8 @@ private:
     std::shared_ptr<std::thread> _comm_thread;
     bool _thr_stop_server_flag = false;
 
-    std::vector<socket_t> _comm_connections;
+    std::vector<conn_t> _comm_connections;
+
 };
 
 

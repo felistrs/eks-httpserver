@@ -21,34 +21,27 @@ HttpServer::~HttpServer()
 {}
 
 void HttpServer::OnConnect(socket_t sock)
+{}
+
+void HttpServer::OnCommunication(Server::conn_t &conn)
 {
     using namespace std;
 
-    // TMP
-    const ssize_t c_read_buffer_sz = 2048; // ???
-    std::stringbuf _sbuffer;
-    std::vector<char> _read_buffer(c_read_buffer_sz);
+    shared_ptr<Buffer> buff = ReadBuffer(conn.sock);
 
-    ssize_t read_sz = recv(sock, _read_buffer.data(),
-                           c_read_buffer_sz, 0);
-    std::cout << "Read buffer sz: " << read_sz << std::endl;
-    if (read_sz == 0)
+    if (!buff)
     {
         warning("Buffer size id zero !");
     } else {
-        debug_hex(_read_buffer);
-        debug_string(_read_buffer);
+        std::cout << "Read buffer sz: " << buff->data().size() << std::endl;
+
+        debug_hex(buff->data());
+        debug_string(buff->data());
         std::cout << std::endl;
-
-        _sbuffer.sputn(_read_buffer.data(), read_sz);
-
-        istream in_str(&_sbuffer);
-        // END: TMP
-
 
         while (true)
         {
-            HttpRequest request = ReadRequest(in_str);
+            HttpRequest request = ReadRequest(buff);
 
             if (_comm_processor)
             {
@@ -58,38 +51,39 @@ void HttpServer::OnConnect(socket_t sock)
                 _comm_processor->processCommands();
             }
 
-            //sock::Close(sock);
             break;  // TODO: !!!
         }
     }
-
 }
 
-HttpRequest HttpServer::ReadRequest(std::istream& in)
+void HttpServer::OnDisconnect(socket_t sock)
+{}
+
+HttpRequest HttpServer::ReadRequest(std::shared_ptr<Buffer> buff)
 {
     using namespace std;
 
     HttpRequest package;
 
-    read_chunk(in, package.request_type, ' ');
+    read_chunk(buff, package.request_type, ' ');
     debug_string(package.request_type);
 
-    read_chunk(in, package.path, ' ');
+    read_chunk(buff, package.path, ' ');
     debug_string(package.path);
 
-    read_chunk(in, package.protocol);
+    read_chunk(buff, package.protocol);
     debug_string(package.protocol);
 
 
     string line;
-    read_chunk(in, line);
+    read_chunk(buff, line);
 
     while (!line.empty() && line != "\r")
     {
         debug_hex(line);
         debug_string(line);
 
-        read_chunk(in, line);
+        read_chunk(buff, line);
 
         package.other.push_back(line); // TODO: parse for more functionality
     }
@@ -98,7 +92,7 @@ HttpRequest HttpServer::ReadRequest(std::istream& in)
 }
 
 void HttpServer::read_chunk(
-        std::istream& in,
+        std::shared_ptr<Buffer> in,
         std::string& buffer,
         char delim) const
 {
@@ -106,18 +100,18 @@ void HttpServer::read_chunk(
 
     buffer.clear();
 
-    while (in.peek() != delim &&
-           in.peek() != '\n' &&
-           in.peek() != EOF)
+    while (in->peek() != delim &&
+           in->peek() != '\n' &&
+           in->peek() != EOF)
     {
-        buffer.push_back( (char)in.get() );
+        buffer.push_back( in->get() );
     }
 
-    in.get();
+    in->get();
 
     if (delim == ' ')
     {
-        while (in.peek() == ' ') in.get();
+        while (in->peek() == ' ') in->get();
     }
 }
 

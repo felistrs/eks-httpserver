@@ -33,25 +33,6 @@ void Server::StartListening()
     _is_running = true;
 }
 
-void Server::StartAcceptingConnections()
-{
-    while (true)
-    {
-        log("Waiting ...");
-
-        auto new_sock = sock::Accept(_main_sock);
-
-        // Add new connection
-        log("Connected.");
-
-        _comm_connections.push_back(new_sock);
-        OnConnect(new_sock); // TODO: make it in the thread ?
-
-//        break; // TODO: accept multiple clients
-    }
-}
-
-
 void Server::StartAsync()
 {
     using namespace std;
@@ -65,14 +46,14 @@ void Server::StartAsync()
 
     int activity_res;
 
+    // Starts new thread for communications
     _comm_thread = shared_ptr<thread>(
         new thread([](Server *server){
-            server->DoCommunication();
+            server->OnCommunication();
         }, this) );
 
     log("Waiting ...");
 
-    int i = 0;
     while (true)
     {
         activity_res = select( max_fd + 1 , &main_set_fd, NULL , NULL , NULL);
@@ -99,9 +80,6 @@ void Server::StartAsync()
 //                break;
             }
         }
-
-        // test connections
-        // for ...
 
         // TODO: remove next
         this_thread::sleep_for(chrono::seconds(5));
@@ -152,7 +130,27 @@ void Server::set_command_processor(CommandProcessor* processor)
     _comm_processor = std::unique_ptr<CommandProcessor>(processor);
 }
 
-void Server::DoCommunication()
+std::shared_ptr<Buffer> Server::ReadBuffer(socket_t sock)
+{
+    using namespace std;
+
+    shared_ptr<Buffer> res;
+
+    const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
+    vector<char> read_buffer(c_read_buffer_sz);
+
+    ssize_t read_sz = recv(sock, read_buffer.data(),
+                           c_read_buffer_sz, 0);
+
+    if (read_sz)
+    {
+        res = shared_ptr<Buffer>(new Buffer(read_buffer, read_sz));
+    }
+
+    return res;
+}
+
+void Server::OnCommunication()
 {
     using namespace std;
 
@@ -162,7 +160,9 @@ void Server::DoCommunication()
             unique_lock<mutex> lock(_lock_connections);
 
             for (socket_t sock : _thr_new_connections) {
-                _comm_connections.push_back(sock);
+                conn_t conn;
+                conn.sock = sock;
+                _comm_connections.push_back(conn);
             }
             _thr_new_connections.clear();
         }
@@ -172,12 +172,12 @@ void Server::DoCommunication()
         {
             fd_set comm_set_fd;
             FD_ZERO(&comm_set_fd); // clear set
-            socket_t max_fd = _comm_connections[0];
-            for (socket_t sock : _comm_connections)
+            socket_t max_fd = _comm_connections[0].sock;
+            for (conn_t conn : _comm_connections)
             {
-                FD_SET(sock, &comm_set_fd); // add connection to set
-                if (sock > max_fd)
-                    max_fd = sock;
+                FD_SET(conn.sock, &comm_set_fd); // add connection to set
+                if (conn.sock > max_fd)
+                    max_fd = conn.sock;
             }
 
             struct timeval timeout;
@@ -192,12 +192,12 @@ void Server::DoCommunication()
                 throw SocketException("(Server::DoCommunication) Select error;");
             }
 
-            for (socket_t sock : _comm_connections)
+            for (conn_t& conn: _comm_connections)
             {
-                if (FD_ISSET(sock, &comm_set_fd))
+                if (FD_ISSET(conn.sock, &comm_set_fd))
                 {
-                    log(to_string(sock) + " need communication");
-                    OnConnect(sock);
+                    log(to_string(conn.sock) + " need communication");
+                    OnCommunication(conn);
                 }
             }
         }
@@ -210,6 +210,9 @@ void Server::DoCommunication()
         }
     }
 }
+
+void Server::OnCommunication(Server::conn_t &conn)
+{}
 
 void Server::StopCommunication()
 {
@@ -227,9 +230,9 @@ void Server::StopCommunication()
 
 void Server::CloseAllConnections()
 {
-    for (auto sock : _comm_connections)
+    for (auto conn : _comm_connections)
     {
-        sock::Close(sock);
+        sock::Close(conn.sock);
     }
     _comm_connections.clear();
 }
