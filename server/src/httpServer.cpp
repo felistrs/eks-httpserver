@@ -32,31 +32,37 @@ void HttpServer::OnConnect(socket_t sock)
     ssize_t read_sz = recv(sock, _read_buffer.data(),
                            c_read_buffer_sz, 0);
     std::cout << "Read buffer sz: " << read_sz << std::endl;
-    debug_hex(_read_buffer);
-    debug_string(_read_buffer);
-    std::cout << std::endl;
-
-    _sbuffer.sputn(_read_buffer.data(), read_sz);
-
-    istream in_str(&_sbuffer);
-    // END: TMP
-
-
-    while (true)
+    if (read_sz == 0)
     {
-        HttpRequest request = ReadRequest(in_str);
+        warning("Buffer size id zero !");
+    } else {
+        debug_hex(_read_buffer);
+        debug_string(_read_buffer);
+        std::cout << std::endl;
 
-        if (_comm_processor)
+        _sbuffer.sputn(_read_buffer.data(), read_sz);
+
+        istream in_str(&_sbuffer);
+        // END: TMP
+
+
+        while (true)
         {
-            std::unique_ptr<Command> command(
-                        new FtpCommand(request));
-            _comm_processor->add(std::move(command));
-            _comm_processor->processCommands();
-        }
+            HttpRequest request = ReadRequest(in_str);
 
-        Socket::Close(sock);
-        break;  // TODO: !!!
+            if (_comm_processor)
+            {
+                std::unique_ptr<Command> command(
+                            new FtpCommand(request));
+                _comm_processor->add(std::move(command));
+                _comm_processor->processCommands();
+            }
+
+            //sock::Close(sock);
+            break;  // TODO: !!!
+        }
     }
+
 }
 
 HttpRequest HttpServer::ReadRequest(std::istream& in)

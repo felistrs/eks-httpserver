@@ -17,7 +17,7 @@ int main(int argc, char **argv)
         http_server.set_listening_port(1234);
         http_server.set_command_processor(new FtpCommandProcessor());
 
-        http_server.Start(); // TODO: add start_async
+        http_server.StartAsync();
     }
     catch (SocketException& e) // TODO: here ?
     {

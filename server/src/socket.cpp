@@ -11,9 +11,10 @@
 
 
 namespace srv {
+namespace sock {
 
 
-socket_t Socket::SocketForLocalListening(int port)
+socket_t SocketForLocalListening(int port)
 {
     socket_t descriptor;
 
@@ -60,7 +61,7 @@ socket_t Socket::SocketForLocalListening(int port)
     return descriptor;
 }
 
-void Socket::StartListening(socket_t descriptor, int max_connections)
+void StartListening(socket_t descriptor, int max_connections)
 {
     if ( listen(descriptor, max_connections) < 0 )
     {
@@ -70,9 +71,9 @@ void Socket::StartListening(socket_t descriptor, int max_connections)
     log( "Listening... ." );
 }
 
-socket_t Socket::Accept(socket_t descriptor)
+socket_t Accept(socket_t descriptor)
 {
-    int new_fd;
+    socket_t new_fd;
 
     struct sockaddr_storage _their_addr;
     socklen_t addr_size = sizeof _their_addr;
@@ -86,10 +87,11 @@ socket_t Socket::Accept(socket_t descriptor)
     return new_fd;
 }
 
-void Socket::Close(int descriptor)
+void Close(int descriptor)
 {
     shutdown(descriptor, 2);
 }
 
 
+}
 }

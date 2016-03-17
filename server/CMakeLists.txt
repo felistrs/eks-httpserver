@@ -27,3 +27,7 @@ endif()
 #add_subdirectory(sockets)
 #target_link_libraries(${PROJECT_NAME} sockets)
 
+
+# Threads
+find_package (Threads)
+target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
