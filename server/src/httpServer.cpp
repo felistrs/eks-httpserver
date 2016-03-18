@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "utils/logger.h"
-#include "ftp_over_http/ftpCommand.h" // TODO: remove !
 
 
 namespace srv {
@@ -20,44 +19,78 @@ HttpServer::HttpServer()
 HttpServer::~HttpServer()
 {}
 
-void HttpServer::OnConnect(socket_t sock)
-{}
+void HttpServer::OnConnect(conn_t& conn)
+{
+    conn.state = conn_state::CNeedReqResp;
+}
 
 void HttpServer::OnCommunication(Server::conn_t &conn)
 {
     using namespace std;
 
-    shared_ptr<Buffer> buff = ReadBuffer(conn.sock);
+    switch (conn.state) {
+    case conn_state::CNone:
+        warning("(HttpServer::OnCommunication) : " + to_string(conn.sock) +
+                " connection not initialized.");
+        break;
+
+    case conn_state::CNeedReqResp:
+    {
+        // Read request
+        shared_ptr<Buffer> buff = GetBuffer(conn);
+        HttpRequest request = ReadRequest(buff);
+
+        //
+        shared_ptr<HttpResponce> responce;
+        if (_comm_processor)
+        {
+            responce = _comm_processor->ProcessRequest(&request);
+        }
+
+        // Send responce
+        auto buffer = responce->generate();
+        SendBuffer(conn.sock, buffer);
+
+        break;
+    }
+
+    case conn_state::CDataSending:
+        break;
+
+    case conn_state::CNeedClose:
+        break;
+
+    default:
+        warning("(HttpServer::OnCommunication) not implemented state");
+        break;
+    }
+
+}
+
+void HttpServer::OnDisconnect(conn_t& conn)
+{}
+
+void HttpServer::set_command_processor(HttpCommandProcessorInterface *processor)
+{
+    _comm_processor = std::unique_ptr<HttpCommandProcessorInterface>(processor);
+}
+
+std::shared_ptr<Buffer> HttpServer::GetBuffer(Server::conn_t &conn)
+{
+    std::shared_ptr<Buffer> buff = RecvBuffer(conn.sock);
 
     if (!buff)
     {
         warning("Buffer size id zero !");
     } else {
         std::cout << "Read buffer sz: " << buff->data().size() << std::endl;
-
         debug_hex(buff->data());
         debug_string(buff->data());
         std::cout << std::endl;
-
-        while (true)
-        {
-            HttpRequest request = ReadRequest(buff);
-
-            if (_comm_processor)
-            {
-                std::unique_ptr<Command> command(
-                            new FtpCommand(request));
-                _comm_processor->add(std::move(command));
-                _comm_processor->processCommands();
-            }
-
-            break;  // TODO: !!!
-        }
     }
-}
 
-void HttpServer::OnDisconnect(socket_t sock)
-{}
+    return buff;
+}
 
 HttpRequest HttpServer::ReadRequest(std::shared_ptr<Buffer> buff)
 {

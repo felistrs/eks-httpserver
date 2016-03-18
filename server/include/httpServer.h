@@ -7,17 +7,11 @@
 #include <string>
 #include <utility>
 
+#include "httpCommandProcessorInterface.h"
+#include "httpThings.h"
+
 
 namespace srv {
-
-
-struct HttpRequest {
-    std::string request_type;
-    std::string path;
-    std::string protocol;
-
-    std::vector<std::string> other;
-};
 
 
 class HttpServer : public Server
@@ -26,22 +20,25 @@ public:
     HttpServer();
     virtual ~HttpServer();
 
-    void OnConnect(socket_t sock) override;
+    void OnConnect(conn_t& conn) override;
     void OnCommunication(conn_t& conn) override;
-    void OnDisconnect(socket_t sock) override;
+    void OnDisconnect(conn_t& conn) override;
+
+    void set_command_processor(HttpCommandProcessorInterface* processor);
 
 
 protected:
     enum conn_state {
         CNone = 0,
-        CNeedRecvRequest = 1,
-        CNeedSendResponse = 2,
-        CNeedClose = 3,
-        CIsClosed = 4,
+        CNeedReqResp,
+        CDataSending,
+        CNeedClose,
     };
 
 
 private:
+    std::shared_ptr<Buffer> GetBuffer(conn_t& conn);
+
     HttpRequest ReadRequest(std::shared_ptr<Buffer> buff);
 
     void read_chunk(
@@ -49,6 +46,7 @@ private:
             std::string& buff,
             char delim = '\n') const;
 
+    std::unique_ptr<HttpCommandProcessorInterface> _comm_processor;
 };
 
 

@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     {
         HttpServer http_server;
         http_server.set_listening_port(1234);
-        http_server.set_command_processor(new FtpCommandProcessor());
+        http_server.set_command_processor(new FtpCommandProcessor);
 
         http_server.StartAsync();
     }

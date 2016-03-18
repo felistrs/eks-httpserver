@@ -17,6 +17,7 @@ public:
     char get();
 
     std::vector<char>& data();
+    unsigned size();
 
 private:
     int _size = 0;

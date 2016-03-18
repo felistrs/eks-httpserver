@@ -9,7 +9,6 @@ include_directories("include")
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_ALL})
 
 
-
 # C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -31,4 +30,3 @@ endif()
 # Threads
 find_package (Threads)
 target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
-

@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "sockets/socket.h"
-#include "commandProcessor.h"
 #include "utils/buffer.h"
 
 
@@ -31,9 +30,9 @@ public:
     void StartAsync();
     void Stop();
 
-    virtual void OnConnect(socket_t sock) = 0;
+    virtual void OnConnect(conn_t& conn) = 0;
     virtual void OnCommunication(conn_t& conn) = 0;
-    virtual void OnDisconnect(socket_t sock) = 0;
+    virtual void OnDisconnect(conn_t& conn) = 0;
 
     void set_listening_port(int port);
 
@@ -42,14 +41,10 @@ public:
     int max_connections() const;
     void set_max_connections(int max_conn);
 
-    void set_command_processor(CommandProcessor* processor);
-
 
 protected:
-    // commands
-    std::unique_ptr<CommandProcessor> _comm_processor;
-
-    std::shared_ptr<Buffer> ReadBuffer(socket_t sock);
+    std::shared_ptr<Buffer> RecvBuffer(socket_t sock);
+    void SendBuffer(socket_t sock, std::shared_ptr<Buffer> buffer);
 
 private:
     void clean();

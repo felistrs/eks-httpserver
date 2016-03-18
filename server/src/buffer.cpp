@@ -45,5 +45,10 @@ std::vector<char>& Buffer::data()
     return _data;
 }
 
+unsigned Buffer::size()
+{
+    return _size;
+}
+
 
 }

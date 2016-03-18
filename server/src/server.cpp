@@ -125,12 +125,7 @@ void Server::set_max_connections(int max_conn)
     _max_connections = max_conn;
 }
 
-void Server::set_command_processor(CommandProcessor* processor)
-{
-    _comm_processor = std::unique_ptr<CommandProcessor>(processor);
-}
-
-std::shared_ptr<Buffer> Server::ReadBuffer(socket_t sock)
+std::shared_ptr<Buffer> Server::RecvBuffer(socket_t sock)
 {
     using namespace std;
 
@@ -150,6 +145,25 @@ std::shared_ptr<Buffer> Server::ReadBuffer(socket_t sock)
     return res;
 }
 
+void Server::SendBuffer(socket_t sock, std::shared_ptr<Buffer> buffer)
+{
+    ssize_t res = send(sock, buffer->data().data(), buffer->size(), 0);
+
+    if (res == ENOTCONN)
+    {
+        throw SocketException("(Server::SendBuffer) : socket is not connected");
+    }
+    else if (res == EMSGSIZE)
+    {
+        throw SocketException("(Server::SendBuffer) : send data is too large");
+    }
+    else // if (res != buffer->size())
+    {
+        //throw SocketException("(Server::SendBuffer) : " + );
+        warning("send : " + std::to_string(res) );
+    }
+}
+
 void Server::OnCommunication()
 {
     using namespace std;
@@ -163,6 +177,7 @@ void Server::OnCommunication()
                 conn_t conn;
                 conn.sock = sock;
                 _comm_connections.push_back(conn);
+                OnConnect(_comm_connections.back());
             }
             _thr_new_connections.clear();
         }
