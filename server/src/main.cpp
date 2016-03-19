@@ -2,8 +2,10 @@
 #include <iostream>
 #include <memory>
 
-#include "httpServer.h"
 #include "ftp_over_http/ftpCommandProcessor.h"
+#include "httpServer.h"
+#include "utils/fileStorageReader.h"
+
 
 
 int main(int argc, char **argv)
@@ -15,7 +17,10 @@ int main(int argc, char **argv)
     {
         HttpServer http_server;
         http_server.set_listening_port(1234);
-        http_server.set_command_processor(new FtpCommandProcessor);
+
+        auto fs_reader = new FileStorageReader("/"); // TODO: from argv
+        auto comm_processor = new FtpCommandProcessor(fs_reader);
+        http_server.set_command_processor(comm_processor);
 
         http_server.StartAsync();
     }
