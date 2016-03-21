@@ -6,17 +6,16 @@
 #include <iostream>
 #include <thread>
 
-#include "sockets/socket_utils.h"
 #include "utils/logger.h"
 
 
-namespace srv {
+namespace server {
 namespace sock {
 
 
-socket_t SocketForLocalListening(int port)
+socket_handler CreateSocketForServer(int port)
 {
-    socket_t descriptor;
+    socket_handler descriptor;
 
     addrinfo hints;
     addrinfo  *tmp_res;
@@ -61,7 +60,7 @@ socket_t SocketForLocalListening(int port)
     return descriptor;
 }
 
-void StartListening(socket_t descriptor, int max_connections)
+void StartListening(socket_handler descriptor, int max_connections)
 {
     if ( listen(descriptor, max_connections) < 0 )
     {
@@ -71,9 +70,9 @@ void StartListening(socket_t descriptor, int max_connections)
     log( "Listening... ." );
 }
 
-socket_t Accept(socket_t descriptor)
+socket_handler AcceptNewConnection(socket_handler descriptor)
 {
-    socket_t new_fd;
+    socket_handler new_fd;
 
     struct sockaddr_storage _their_addr;
     socklen_t addr_size = sizeof _their_addr;
@@ -87,7 +86,7 @@ socket_t Accept(socket_t descriptor)
     return new_fd;
 }
 
-void Close(int descriptor)
+void CloseSocket(int descriptor)
 {
     shutdown(descriptor, 2);
 }

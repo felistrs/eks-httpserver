@@ -1,10 +1,8 @@
-#ifndef UTILS_LOGGER_H
-#define UTILS_LOGGER_H
+#ifndef UTILS__LOGGER_H
+#define UTILS__LOGGER_H
 
 #include <string>
 #include <vector>
-
-namespace srv {
 
 
 void log(const std::string msg);
@@ -17,6 +15,5 @@ void debug_hex(const container &buffer);
 template<class container>
 void debug_string(const container &buffer);
 
-}
 
-#endif // UTILS_LOGGER_H
+#endif // UTILS__LOGGER_H

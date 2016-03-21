@@ -1,5 +1,5 @@
-#ifndef HTTPSERVER_H
-#define HTTPSERVER_H
+#ifndef HTTP_SERVER_H
+#define HTTP_SERVER_H
 
 #include "server.h"
 
@@ -11,7 +11,7 @@
 #include "httpThings.h"
 
 
-namespace srv {
+namespace server {
 
 
 class HttpServer : public Server
@@ -20,11 +20,11 @@ public:
     HttpServer();
     virtual ~HttpServer();
 
-    void OnConnect(conn_t& conn) override;
-    void OnCommunication(conn_t& conn) override;
-    void OnDisconnect(conn_t& conn) override;
+    void OnConnect(connection_descriptor& conn) override;
+    void OnCommunication(connection_descriptor& conn) override;
+    void OnDisconnect(connection_descriptor& conn) override;
 
-    void set_command_processor(HttpCommandProcessorInterface* processor);
+    void setup_command_processor(HttpCommandProcessorInterface* processor);
 
 
 protected:
@@ -37,7 +37,7 @@ protected:
 
 
 private:
-    std::shared_ptr<Buffer> GetBuffer(conn_t& conn);
+    std::shared_ptr<Buffer> GetBuffer(connection_descriptor& conn);
 
     HttpRequest ReadRequest(std::shared_ptr<Buffer> buff);
 
@@ -52,4 +52,4 @@ private:
 
 }
 
-#endif // HTTPSERVER_H
+#endif // HTTP_SERVER_H

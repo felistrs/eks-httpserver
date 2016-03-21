@@ -1,5 +1,5 @@
-#ifndef SOCKETS_H
-#define SOCKETS_H
+#ifndef SOCKETS__SOCKETS_H
+#define SOCKETS__SOCKETS_H
 
 
 #ifdef WIN32
@@ -13,9 +13,9 @@
 //#endif
 #else
 
-#include "sockets_unix.h"
+#include "socketsUnix.h"
 #endif
 
-#include "socket_utils.h"
+#include "socketTypes.h"
 
-#endif // SOCKETS_H
+#endif // SOCKETS__SOCKETS_H

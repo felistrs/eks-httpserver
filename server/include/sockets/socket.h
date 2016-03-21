@@ -1,5 +1,5 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef SOCKETS__SOCKET_H
+#define SOCKETS__SOCKET_H
 
 
 #include <iostream>
@@ -8,22 +8,19 @@
 #include <vector>
 
 #include "sockets.h"
+#include "sockets/socketTypes.h"
 
 
-namespace srv {
-
-using socket_t = int;
-
-namespace sock {
+namespace server { namespace sock {
 
 
-socket_t SocketForLocalListening(int port);
-void StartListening(socket_t descriptor, int max_connections);
-socket_t Accept(socket_t descriptor);
-void Close(socket_t descriptor);
+socket_handler CreateSocketForServer(int port);
+void StartListening(socket_handler descriptor, int max_connections);
+socket_handler AcceptNewConnection(socket_handler descriptor);
+void CloseSocket(socket_handler descriptor);
 
 
-}
-}
+} }
 
-#endif // SOCKET_H
+
+#endif // SOCKETS__SOCKET_H

@@ -12,7 +12,7 @@
 #include "utils/buffer.h"
 
 
-namespace srv {
+namespace server {
 
 
 class Server {
@@ -21,8 +21,8 @@ public:
     virtual ~Server();
 
 
-    struct conn_t {
-        socket_t sock = 0;
+    struct connection_descriptor {
+        socket_handler sock = 0;
         int state = 0;
     };
 
@@ -30,25 +30,23 @@ public:
     void StartAsync();
     void Stop();
 
-    virtual void OnConnect(conn_t& conn) = 0;
-    virtual void OnCommunication(conn_t& conn) = 0;
-    virtual void OnDisconnect(conn_t& conn) = 0;
+    virtual void OnConnect(connection_descriptor& conn) = 0;
+    virtual void OnCommunication(connection_descriptor& conn) = 0;
+    virtual void OnDisconnect(connection_descriptor& conn) = 0;
 
-    void set_listening_port(int port);
+public:
+    void set_listening_port(int port) { _port = port; }
+    bool is_running() const { return _is_running; }
 
-    bool is_running() const;
-
-    int max_connections() const;
-    void set_max_connections(int max_conn);
+    int max_connections() const { return _max_connections; }
+    void set_max_connections(int max_conn) { _max_connections = max_conn; }
 
 
 protected:
-    std::shared_ptr<Buffer> RecvBuffer(socket_t sock);
-    void SendBuffer(socket_t sock, std::shared_ptr<Buffer> buffer);
+    std::shared_ptr<Buffer> RecvBuffer(socket_handler sock);
+    void SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer);
 
 private:
-    void clean();
-
     void StartListening();
 
     void OnCommunication();
@@ -62,17 +60,17 @@ private:
     int _max_connections = 100;
 
     // socket
-    socket_t _main_sock;
+    socket_handler _main_sock;
 
     //
     std::mutex _lock_connections;
-    std::vector<socket_t> _thr_new_connections;
+    std::vector<socket_handler> _thr_new_connections;
 
     // thread for communication
     std::shared_ptr<std::thread> _comm_thread;
     bool _thr_stop_server_flag = false;
 
-    std::vector<conn_t> _comm_connections;
+    std::vector<connection_descriptor> _comm_connections;
 
 };
 

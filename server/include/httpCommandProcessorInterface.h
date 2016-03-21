@@ -6,7 +6,7 @@
 #include "httpThings.h"
 
 
-namespace srv {
+namespace server {
 
 
 class HttpCommandProcessorInterface
@@ -15,7 +15,7 @@ public:
     HttpCommandProcessorInterface() {}
     virtual ~HttpCommandProcessorInterface() {}
 
-    virtual std::shared_ptr<HttpResponce> ProcessRequest(HttpRequest* req) = 0;
+    virtual std::shared_ptr<HttpResponse> ProcessRequest(HttpRequest* req) = 0;
 };
 
 

@@ -3,9 +3,6 @@
 #include <iostream>
 
 
-namespace srv {
-
-
 void log(const std::string msg)
 {
     std::clog << msg << std::endl;
@@ -46,10 +43,8 @@ void debug_string(const container &buffer)
     cout << "\"" << str << "\"" << endl;
 }
 
+
 template void debug_hex<std::string>(const std::string &);
 template void debug_hex<std::vector<char>>(const std::vector<char> &);
 template void debug_string<std::string>(const std::string &);
 template void debug_string<std::vector<char>>(const std::vector<char> &);
-
-
-}

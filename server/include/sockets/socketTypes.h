@@ -1,11 +1,14 @@
-#ifndef SOCKET_UTILS_H
-#define SOCKET_UTILS_H
+#ifndef SOCKETS__SOCKET_TYPE_H
+#define SOCKETS__SOCKET_TYPE_H
 
 #include <exception>
 #include <string>
 
 
-namespace srv {
+namespace server {
+
+
+using socket_handler = int;
 
 
 class SocketException : public std::exception
@@ -14,11 +17,10 @@ public:
     SocketException(std::string info) :
         info(info) {}
 
-
     std::string info;
 };
 
 
 }
 
-#endif // SOCKET_UTILS_H
+#endif // SOCKETS__SOCKET_TYPE_H

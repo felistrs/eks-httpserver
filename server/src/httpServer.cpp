@@ -10,7 +10,7 @@
 #include "utils/logger.h"
 
 
-namespace srv {
+namespace server {
 
 
 HttpServer::HttpServer()
@@ -19,12 +19,12 @@ HttpServer::HttpServer()
 HttpServer::~HttpServer()
 {}
 
-void HttpServer::OnConnect(conn_t& conn)
+void HttpServer::OnConnect(connection_descriptor& conn)
 {
     conn.state = conn_state::CNeedReqResp;
 }
 
-void HttpServer::OnCommunication(Server::conn_t &conn)
+void HttpServer::OnCommunication(Server::connection_descriptor &conn)
 {
     using namespace std;
 
@@ -41,14 +41,14 @@ void HttpServer::OnCommunication(Server::conn_t &conn)
         HttpRequest request = ReadRequest(buff);
 
         //
-        shared_ptr<HttpResponce> responce;
+        shared_ptr<HttpResponse> response;
         if (_comm_processor)
         {
-            responce = _comm_processor->ProcessRequest(&request);
+            response = _comm_processor->ProcessRequest(&request);
         }
 
         // Send responce
-        auto buffer = responce->generate();
+        auto buffer = response->generate();
         SendBuffer(conn.sock, buffer);
 
         break;
@@ -67,15 +67,15 @@ void HttpServer::OnCommunication(Server::conn_t &conn)
 
 }
 
-void HttpServer::OnDisconnect(conn_t& conn)
+void HttpServer::OnDisconnect(connection_descriptor& conn)
 {}
 
-void HttpServer::set_command_processor(HttpCommandProcessorInterface *processor)
+void HttpServer::setup_command_processor(HttpCommandProcessorInterface *processor)
 {
     _comm_processor = std::unique_ptr<HttpCommandProcessorInterface>(processor);
 }
 
-std::shared_ptr<Buffer> HttpServer::GetBuffer(Server::conn_t &conn)
+std::shared_ptr<Buffer> HttpServer::GetBuffer(Server::connection_descriptor &conn)
 {
     std::shared_ptr<Buffer> buff = RecvBuffer(conn.sock);
 

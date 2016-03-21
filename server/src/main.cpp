@@ -10,7 +10,7 @@
 int main(int argc, char **argv)
 {
     // TODO: read port from argv
-    using namespace srv;
+    using namespace server;
 
     try
     {
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
         auto fs_reader = new FileStorageReader("/"); // TODO: from argv
         auto comm_processor = new FtpCommandProcessor(fs_reader);
-        http_server.set_command_processor(comm_processor);
+        http_server.setup_command_processor(comm_processor);
 
         http_server.StartAsync();
     }

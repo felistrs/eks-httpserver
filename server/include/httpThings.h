@@ -8,7 +8,7 @@
 #include "utils/buffer.h"
 
 
-namespace srv {
+namespace server {
 
 
 struct HttpRequest {
@@ -20,7 +20,7 @@ struct HttpRequest {
 };
 
 
-class HttpResponce {
+class HttpResponse {
 public:
     std::shared_ptr<Buffer> generate();
 

@@ -6,18 +6,15 @@
 #include "utils/logger.h"
 
 
-namespace srv {
-
-
 FileStorageReader::FileStorageReader(std::string root) :
     _root(root)
 {
-    if (!Exists("")) {
+    if (!TestIfPathExists("")) {
         warning("(FileStorageReader) : Path does not exists : " + root);
     }
 }
 
-bool FileStorageReader::Exists(std::string rel_path)
+bool FileStorageReader::TestIfPathExists(std::string rel_path)
 {
     struct stat buffer;
     return stat((_root + rel_path).c_str(), &buffer) == 0;
@@ -56,13 +53,13 @@ std::vector<std::string> FileStorageReader::GetFilesList(std::string rel_path)
     return res;
 }
 
-std::shared_ptr<DataProvider> FileStorageReader::GetFile(std::string fpath)
+std::shared_ptr<DataProvider> FileStorageReader::GetFileDataProvider(std::string fpath)
 {
     std::shared_ptr<DataProvider> dp;
 
     std::string full_fpath = _root + fpath;
 
-    if (Exists(full_fpath.c_str()))
+    if (TestIfPathExists(full_fpath.c_str()))
     {
         dp = std::shared_ptr<DataProvider>(new DataProvider(full_fpath));
     }
@@ -72,7 +69,4 @@ std::shared_ptr<DataProvider> FileStorageReader::GetFile(std::string fpath)
     }
 
     return dp;
-}
-
-
 }

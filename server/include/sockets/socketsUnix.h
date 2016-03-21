@@ -1,3 +1,7 @@
+#ifndef SOCKETS__SOCKETS_UNIX_H
+#define SOCKETS__SOCKETS_UNIX_H
+
+
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -14,3 +18,6 @@
 //#include <unistd.h>
 //#include <sys/param.h>
 //#include <string>
+
+
+#endif // SOCKETS__SOCKETS_UNIX_H

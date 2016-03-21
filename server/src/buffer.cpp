@@ -5,11 +5,8 @@
 #include "utils/logger.h"
 
 
-namespace srv {
-
-
-Buffer::Buffer(std::vector<char>& data, int size) :
-    _data(std::move(data)),
+Buffer::Buffer(std::vector<char>&& data, int size) :
+    _data(data),
     _size(size),
     _position(0)
 {
@@ -48,7 +45,4 @@ std::vector<char>& Buffer::data()
 unsigned Buffer::size()
 {
     return _size;
-}
-
-
 }

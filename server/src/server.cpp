@@ -4,11 +4,10 @@
 
 #include <exception>
 
-#include "sockets/socket_utils.h"
 #include "utils/logger.h"
 
 
-namespace srv {
+namespace server {
 
 
 Server::Server()
@@ -22,12 +21,9 @@ Server::~Server()
     }
 }
 
-void Server::clean()
-{}
-
 void Server::StartListening()
 {
-    _main_sock = sock::SocketForLocalListening(_port);
+    _main_sock = sock::CreateSocketForServer(_port);
     sock::StartListening(_main_sock, max_connections());
 
     _is_running = true;
@@ -42,7 +38,7 @@ void Server::StartAsync()
     fd_set main_set_fd;
     FD_ZERO(&main_set_fd); // clear set
     FD_SET(_main_sock, &main_set_fd); // add socket
-    socket_t max_fd = _main_sock;
+    socket_handler max_fd = _main_sock;
 
     int activity_res;
 
@@ -66,7 +62,7 @@ void Server::StartAsync()
         // something with main socket
         if (FD_ISSET(_main_sock, &main_set_fd))
         {
-            auto new_sock = sock::Accept(_main_sock);
+            auto new_sock = sock::AcceptNewConnection(_main_sock);
             log("Accepted : "+to_string(new_sock));
 
             {
@@ -99,33 +95,13 @@ void Server::Stop()
     if (_is_running)
     {
         StopCommunication();
-        sock::Close(_main_sock);
+        sock::CloseSocket(_main_sock);
         _main_sock = 0;
         _is_running = false;
     }
 }
 
-void Server::set_listening_port(int port)
-{
-    _port = port;
-}
-
-bool Server::is_running() const
-{
-    return _is_running;
-}
-
-int Server::max_connections() const
-{
-    return _max_connections;
-}
-
-void Server::set_max_connections(int max_conn)
-{
-    _max_connections = max_conn;
-}
-
-std::shared_ptr<Buffer> Server::RecvBuffer(socket_t sock)
+std::shared_ptr<Buffer> Server::RecvBuffer(socket_handler sock)
 {
     using namespace std;
 
@@ -139,13 +115,13 @@ std::shared_ptr<Buffer> Server::RecvBuffer(socket_t sock)
 
     if (read_sz)
     {
-        res = shared_ptr<Buffer>(new Buffer(read_buffer, read_sz));
+        res = shared_ptr<Buffer>(new Buffer(std::move(read_buffer), read_sz));
     }
 
     return res;
 }
 
-void Server::SendBuffer(socket_t sock, std::shared_ptr<Buffer> buffer)
+void Server::SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer)
 {
     ssize_t res = send(sock, buffer->data().data(), buffer->size(), 0);
 
@@ -173,8 +149,8 @@ void Server::OnCommunication()
         {
             unique_lock<mutex> lock(_lock_connections);
 
-            for (socket_t sock : _thr_new_connections) {
-                conn_t conn;
+            for (socket_handler sock : _thr_new_connections) {
+                connection_descriptor conn;
                 conn.sock = sock;
                 _comm_connections.push_back(conn);
                 OnConnect(_comm_connections.back());
@@ -187,8 +163,8 @@ void Server::OnCommunication()
         {
             fd_set comm_set_fd;
             FD_ZERO(&comm_set_fd); // clear set
-            socket_t max_fd = _comm_connections[0].sock;
-            for (conn_t conn : _comm_connections)
+            socket_handler max_fd = _comm_connections[0].sock;
+            for (connection_descriptor conn : _comm_connections)
             {
                 FD_SET(conn.sock, &comm_set_fd); // add connection to set
                 if (conn.sock > max_fd)
@@ -207,7 +183,7 @@ void Server::OnCommunication()
                 throw SocketException("(Server::DoCommunication) Select error;");
             }
 
-            for (conn_t& conn: _comm_connections)
+            for (connection_descriptor& conn: _comm_connections)
             {
                 if (FD_ISSET(conn.sock, &comm_set_fd))
                 {
@@ -226,7 +202,7 @@ void Server::OnCommunication()
     }
 }
 
-void Server::OnCommunication(Server::conn_t &conn)
+void Server::OnCommunication(Server::connection_descriptor &conn)
 {}
 
 void Server::StopCommunication()
@@ -247,7 +223,7 @@ void Server::CloseAllConnections()
 {
     for (auto conn : _comm_connections)
     {
-        sock::Close(conn.sock);
+        sock::CloseSocket(conn.sock);
     }
     _comm_connections.clear();
 }
