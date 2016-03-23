@@ -1,10 +1,11 @@
-#include "server.h"
-
 #include <cstring>
 
 #include <exception>
 
+#include "server.h"
+
 #include "utils/logger.h"
+#include "socket/socketFunctions.h"
 
 
 namespace server {
@@ -98,45 +99,6 @@ void Server::Stop()
         sock::CloseSocket(_main_sock);
         _main_sock = 0;
         _is_running = false;
-    }
-}
-
-std::shared_ptr<Buffer> Server::RecvBuffer(socket_handler sock)
-{
-    using namespace std;
-
-    shared_ptr<Buffer> res;
-
-    const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
-    vector<char> read_buffer(c_read_buffer_sz);
-
-    ssize_t read_sz = recv(sock, read_buffer.data(),
-                           c_read_buffer_sz, 0);
-
-    if (read_sz)
-    {
-        res = shared_ptr<Buffer>(new Buffer(std::move(read_buffer), read_sz));
-    }
-
-    return res;
-}
-
-void Server::SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer)
-{
-    ssize_t res = send(sock, buffer->data().data(), buffer->size(), 0);
-
-    if (res == ENOTCONN)
-    {
-        throw SocketException("(Server::SendBuffer) : socket is not connected");
-    }
-    else if (res == EMSGSIZE)
-    {
-        throw SocketException("(Server::SendBuffer) : send data is too large");
-    }
-    else // if (res != buffer->size())
-    {
-        //throw SocketException("(Server::SendBuffer) : " + );
-        warning("send : " + std::to_string(res) );
     }
 }
 

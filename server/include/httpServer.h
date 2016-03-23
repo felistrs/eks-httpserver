@@ -17,14 +17,12 @@ namespace server {
 class HttpServer : public Server
 {
 public:
-    HttpServer();
-    virtual ~HttpServer();
+    HttpServer(HttpCommandProcessorInterface* processor);
+    virtual ~HttpServer() {}
 
     void OnConnect(connection_descriptor& conn) override;
     void OnCommunication(connection_descriptor& conn) override;
     void OnDisconnect(connection_descriptor& conn) override;
-
-    void setup_command_processor(HttpCommandProcessorInterface* processor);
 
 
 protected:
@@ -46,7 +44,7 @@ private:
             std::string& buff,
             char delim = '\n') const;
 
-    std::unique_ptr<HttpCommandProcessorInterface> _comm_processor;
+    HttpCommandProcessorInterface* _command_processor;
 };
 
 

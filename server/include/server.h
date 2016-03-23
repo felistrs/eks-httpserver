@@ -1,14 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <atomic>
-#include <iostream>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
-#include "sockets/socket.h"
+#include "socket/socket.h"
 #include "utils/buffer.h"
 
 
@@ -41,10 +39,6 @@ public:
     int max_connections() const { return _max_connections; }
     void set_max_connections(int max_conn) { _max_connections = max_conn; }
 
-
-protected:
-    std::shared_ptr<Buffer> RecvBuffer(socket_handler sock);
-    void SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer);
 
 private:
     void StartListening();

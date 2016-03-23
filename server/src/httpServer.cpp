@@ -1,22 +1,23 @@
-#include "httpServer.h"
-
-#include <cstring>
+#include <cassert>
 #include <cctype>
+#include <cstring>
 
 #include <iostream>
 #include <sstream>
 #include <vector>
 
+#include "httpServer.h"
+
 #include "utils/logger.h"
+#include "socket/socket.h"
+#include "socket/socketFunctions.h"
 
 
 namespace server {
 
 
-HttpServer::HttpServer()
-{}
-
-HttpServer::~HttpServer()
+HttpServer::HttpServer(HttpCommandProcessorInterface *processor) :
+    _command_processor(processor)
 {}
 
 void HttpServer::OnConnect(connection_descriptor& conn)
@@ -42,14 +43,13 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
 
         //
         shared_ptr<HttpResponse> response;
-        if (_comm_processor)
-        {
-            response = _comm_processor->ProcessRequest(&request);
-        }
+
+        assert(_command_processor);
+        response = _command_processor->ProcessRequest(&request);
 
         // Send responce
         auto buffer = response->generate();
-        SendBuffer(conn.sock, buffer);
+        sock::SendBuffer(conn.sock, buffer);
 
         break;
     }
@@ -70,14 +70,9 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
 void HttpServer::OnDisconnect(connection_descriptor& conn)
 {}
 
-void HttpServer::setup_command_processor(HttpCommandProcessorInterface *processor)
-{
-    _comm_processor = std::unique_ptr<HttpCommandProcessorInterface>(processor);
-}
-
 std::shared_ptr<Buffer> HttpServer::GetBuffer(Server::connection_descriptor &conn)
 {
-    std::shared_ptr<Buffer> buff = RecvBuffer(conn.sock);
+    auto buff = sock::RecvBuffer(conn.sock);
 
     if (!buff)
     {

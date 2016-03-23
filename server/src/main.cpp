@@ -10,16 +10,16 @@
 int main(int argc, char **argv)
 {
     // TODO: read port from argv
+    using namespace std;
     using namespace server;
 
     try
     {
-        HttpServer http_server;
-        http_server.set_listening_port(1234);
+        unique_ptr<FileStorageReader> fs_reader(new FileStorageReader("/")); // TODO: from argv
+        unique_ptr<FtpCommandProcessor> command_processor(new FtpCommandProcessor(fs_reader.get()));
 
-        auto fs_reader = new FileStorageReader("/"); // TODO: from argv
-        auto comm_processor = new FtpCommandProcessor(fs_reader);
-        http_server.setup_command_processor(comm_processor);
+        HttpServer http_server(command_processor.get());
+        http_server.set_listening_port(1234);
 
         http_server.StartAsync();
     }

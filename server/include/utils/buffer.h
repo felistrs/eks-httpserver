@@ -9,6 +9,10 @@ class Buffer
 public:
     Buffer(std::vector<char>&& data, int size);
 
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+
+
     char peek() const;
     char get();
 

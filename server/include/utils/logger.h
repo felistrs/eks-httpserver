@@ -2,7 +2,6 @@
 #define UTILS__LOGGER_H
 
 #include <string>
-#include <vector>
 
 
 void log(const std::string msg);

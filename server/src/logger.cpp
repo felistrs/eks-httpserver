@@ -1,6 +1,7 @@
-#include "utils/logger.h"
-
 #include <iostream>
+#include <vector>
+
+#include "utils/logger.h"
 
 
 void log(const std::string msg)

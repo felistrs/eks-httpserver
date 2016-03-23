@@ -1,6 +1,6 @@
-#include "utils/buffer.h"
-
 #include <cstdio>
+
+#include "utils/buffer.h"
 
 #include "utils/logger.h"
 
