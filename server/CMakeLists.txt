@@ -1,13 +1,6 @@
 project(server)
 cmake_minimum_required(VERSION 2.8)
 
-aux_source_directory(./src/ SRC_LIST)
-
-FILE(GLOB_RECURSE INC_ALL "./include/*.h")
-include_directories("include")
-
-add_executable(${PROJECT_NAME} ${SRC_LIST} ${INC_ALL})
-
 
 # C++11
 include(CheckCXXCompilerFlag)
@@ -21,13 +14,18 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-
-# sockets
-#add_subdirectory(sockets)
-#target_link_libraries(${PROJECT_NAME} sockets)
-
-
 # Threads
 find_package (Threads)
-target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
+# Http Server Library
+aux_source_directory(./src/ LIB_SRC_LIST)
+add_library(ekshttpserver STATIC ${LIB_SRC_LIST})
+
+# example targets
+FILE(GLOB_RECURSE INC_ALL "./include/*.h")
+include_directories("include")
+
+add_executable(${PROJECT_NAME} "./examples/ftpOverHttpServer.cpp" ${INC_ALL})
+
+target_link_libraries(${PROJECT_NAME} ekshttpserver)
+target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})

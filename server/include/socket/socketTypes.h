@@ -2,13 +2,31 @@
 #define SOCKETS__SOCKET_TYPE_H
 
 #include <exception>
+#include <map>
 #include <string>
+
+#include "socket/socket.h"
 
 
 namespace server {
 
 
 using socket_handler = int;
+
+
+//using socket_handler = int;
+
+//struct socket_descriptor {
+//    enum class Type { CNone, CSocket };
+
+//    Type type = Type::CNone;
+//    int sock_handler = 0;
+//};
+
+
+//socket_handler generateSocketHandler();
+//void releaseSocketHandler(socket_handler handler);
+//bool testIfAllHandlersReleased();
 
 
 class SocketException : public std::exception
