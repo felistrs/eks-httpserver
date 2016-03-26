@@ -7,6 +7,8 @@
 class Buffer
 {
 public:
+    Buffer() {}
+    Buffer(Buffer&& buff);
     Buffer(std::vector<char>&& data, int size);
 
     Buffer(const Buffer&) = delete;

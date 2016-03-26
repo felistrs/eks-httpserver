@@ -16,10 +16,10 @@ public:
     FtpCommandProcessor(FileStorageReader* fsr);
     virtual ~FtpCommandProcessor() {}
 
-    std::shared_ptr<HttpResponse> ProcessRequest(HttpRequest* req) override;
+    HttpResponse ProcessRequest(HttpRequest* req) override;
 
 private:
-    std::unique_ptr<FileStorageReader> _file_storage_reader;
+    FileStorageReader* _file_storage_reader;
 };
 
 

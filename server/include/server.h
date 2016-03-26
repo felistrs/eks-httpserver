@@ -61,7 +61,7 @@ private:
     std::vector<socket_handler> _thr_new_connections;
 
     // thread for communication
-    std::shared_ptr<std::thread> _comm_thread;
+    std::unique_ptr<std::thread> _comm_thread;
     bool _thr_stop_server_flag = false;
 
     std::vector<connection_descriptor> _comm_connections;

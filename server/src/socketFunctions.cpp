@@ -91,7 +91,7 @@ void CloseSocket(int descriptor)
     ::shutdown(descriptor, 2);
 }
 
-void SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer)
+void SendBuffer(socket_handler sock, Buffer* buffer)
 {
     ssize_t res = ::send(sock, buffer->data().data(), buffer->size(), 0);
 
@@ -110,11 +110,11 @@ void SendBuffer(socket_handler sock, std::shared_ptr<Buffer> buffer)
     }
 }
 
-std::shared_ptr<Buffer> RecvBuffer(socket_handler sock)
+Buffer RecvBuffer(socket_handler sock)
 {
     using namespace std;
 
-    shared_ptr<Buffer> res;
+    Buffer res;
 
     const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
     vector<char> read_buffer(c_read_buffer_sz);
@@ -124,10 +124,11 @@ std::shared_ptr<Buffer> RecvBuffer(socket_handler sock)
 
     if (read_sz)
     {
-        res = shared_ptr<Buffer>(new Buffer(std::move(read_buffer), read_sz));
+        return Buffer(std::move(read_buffer), read_sz);
     }
-
-    return res;
+    else {
+        return res;
+    }
 }
 
 

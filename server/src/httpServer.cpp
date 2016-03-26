@@ -10,7 +10,6 @@
 
 #include "utils/logger.h"
 #include "socket/socket.h"
-#include "socket/socketFunctions.h"
 
 
 namespace server {
@@ -38,18 +37,16 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
     case conn_state::CNeedReqResp:
     {
         // Read request
-        shared_ptr<Buffer> buff = GetBuffer(conn);
-        HttpRequest request = ReadRequest(buff);
+        Buffer buff = GetBuffer(conn);
+        HttpRequest request = ReadRequest(&buff);
 
         //
-        shared_ptr<HttpResponse> response;
-
         assert(_command_processor);
-        response = _command_processor->ProcessRequest(&request);
+        HttpResponse response = _command_processor->ProcessRequest(&request);
 
         // Send responce
-        auto buffer = response->generate();
-        sock::SendBuffer(conn.sock, buffer);
+        auto buffer = response.generate();
+        sock::SendBuffer(conn.sock, &buffer);
 
         break;
     }
@@ -70,24 +67,19 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
 void HttpServer::OnDisconnect(connection_descriptor& conn)
 {}
 
-std::shared_ptr<Buffer> HttpServer::GetBuffer(Server::connection_descriptor &conn)
+Buffer HttpServer::GetBuffer(Server::connection_descriptor &conn)
 {
     auto buff = sock::RecvBuffer(conn.sock);
 
-    if (!buff)
-    {
-        warning("Buffer size id zero !");
-    } else {
-        std::cout << "Read buffer sz: " << buff->data().size() << std::endl;
-        debug_hex(buff->data());
-        debug_string(buff->data());
-        std::cout << std::endl;
-    }
+    std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
+    debug_hex(buff.data());
+    debug_string(buff.data());
+    std::cout << std::endl;
 
     return buff;
 }
 
-HttpRequest HttpServer::ReadRequest(std::shared_ptr<Buffer> buff)
+HttpRequest HttpServer::ReadRequest(Buffer* buff)
 {
     using namespace std;
 
@@ -120,7 +112,7 @@ HttpRequest HttpServer::ReadRequest(std::shared_ptr<Buffer> buff)
 }
 
 void HttpServer::read_chunk(
-        std::shared_ptr<Buffer> in,
+        Buffer* in,
         std::string& buffer,
         char delim) const
 {

@@ -5,7 +5,7 @@
 #include "server.h"
 
 #include "utils/logger.h"
-#include "socket/socketFunctions.h"
+#include "socket/socket.h"
 
 
 namespace server {
@@ -44,7 +44,7 @@ void Server::StartAsync()
     int activity_res;
 
     // Starts new thread for communications
-    _comm_thread = shared_ptr<thread>(
+    _comm_thread = unique_ptr<thread>(
         new thread([](Server *server){
             server->OnCommunication();
         }, this) );

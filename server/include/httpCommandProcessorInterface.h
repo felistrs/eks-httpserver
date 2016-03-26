@@ -15,7 +15,7 @@ public:
     HttpCommandProcessorInterface() {}
     virtual ~HttpCommandProcessorInterface() {}
 
-    virtual std::shared_ptr<HttpResponse> ProcessRequest(HttpRequest* req) = 0;
+    virtual HttpResponse ProcessRequest(HttpRequest* req) = 0;
 };
 
 

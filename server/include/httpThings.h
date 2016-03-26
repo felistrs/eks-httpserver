@@ -22,7 +22,7 @@ struct HttpRequest {
 
 class HttpResponse {
 public:
-    std::shared_ptr<Buffer> generate();
+    Buffer generate();
 
     std::string data = "HTTP/1.1 403 Forbidden\r\n\0";
 };

@@ -54,20 +54,17 @@ std::vector<std::string> FileStorageReader::GetFilesList(std::string rel_path)
     return res;
 }
 
-std::shared_ptr<DataProvider> FileStorageReader::GetFileDataProvider(std::string fpath)
+DataProvider FileStorageReader::GetFileDataProvider(std::string fpath)
 {
-    std::shared_ptr<DataProvider> dp;
-
     std::string full_fpath = _root + fpath;
 
     if (TestIfPathExists(full_fpath.c_str()))
     {
-        dp = std::shared_ptr<DataProvider>(new DataProvider(full_fpath));
+        return DataProvider(full_fpath);
     }
     else
     {
         error("(FileStorageReader::GetFile) : File does not exists.");
+        return DataProvider(fpath); // TODO: remove this, throw exception
     }
-
-    return dp;
 }

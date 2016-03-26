@@ -35,12 +35,12 @@ protected:
 
 
 private:
-    std::shared_ptr<Buffer> GetBuffer(connection_descriptor& conn);
+    Buffer GetBuffer(connection_descriptor& conn);
 
-    HttpRequest ReadRequest(std::shared_ptr<Buffer> buff);
+    HttpRequest ReadRequest(Buffer* buff);
 
     void read_chunk(
-            std::shared_ptr<Buffer> in,
+            Buffer* in,
             std::string& buff,
             char delim = '\n') const;
 

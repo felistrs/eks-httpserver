@@ -5,6 +5,12 @@
 #include "utils/logger.h"
 
 
+Buffer::Buffer(Buffer &&buff) :
+    _size(buff._size),
+    _position(buff._position),
+    _data(std::move(buff._data))
+{}
+
 Buffer::Buffer(std::vector<char>&& data, int size) :
     _data(data),
     _size(size),
