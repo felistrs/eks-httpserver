@@ -29,3 +29,4 @@ add_executable(${PROJECT_NAME} "./examples/ftpOverHttpServer.cpp" ${INC_ALL})
 
 target_link_libraries(${PROJECT_NAME} ekshttpserver)
 target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+

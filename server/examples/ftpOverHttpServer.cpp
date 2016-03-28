@@ -15,8 +15,10 @@ int main(int argc, char **argv)
 
     try
     {
-        unique_ptr<FileStorageReader> fs_reader(new FileStorageReader("/")); // TODO: from argv
-        unique_ptr<FtpCommandProcessor> command_processor(new FtpCommandProcessor(fs_reader.get()));
+        unique_ptr<FileStorageReader> fs_reader(
+                    new FileStorageReader("/")); // TODO: from argv
+        unique_ptr<FtpCommandProcessor> command_processor(
+                    new FtpCommandProcessor(fs_reader.get()));
 
         HttpServer http_server(command_processor.get());
         http_server.set_listening_port(1234);

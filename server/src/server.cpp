@@ -69,12 +69,6 @@ void Server::StartAsync()
             {
                 std::unique_lock<std::mutex> lock(_lock_connections);
                 _thr_new_connections.push_back(new_sock);
-
-//                OnConnect(new_sock); // !!!
-//                this_thread::sleep_for(chrono::seconds(5));
-//                log("Close ... ");
-//                _thr_stop_server_flag = true;
-//                break;
             }
         }
 
@@ -83,6 +77,9 @@ void Server::StartAsync()
         log("Close ... ");
         _thr_stop_server_flag = true;
         break;
+
+        // sleep
+        this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
     }
 
     if(_comm_thread)
@@ -161,6 +158,9 @@ void Server::OnCommunication()
             CloseAllConnections();
             break;
         }
+
+        // sleep
+        this_thread::sleep_for(chrono::milliseconds(CCommunicationSleepMS));
     }
 }
 

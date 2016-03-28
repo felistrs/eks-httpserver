@@ -40,6 +40,11 @@ public:
     void set_max_connections(int max_conn) { _max_connections = max_conn; }
 
 
+protected:
+    const unsigned CListenSleepMS = 50;
+    const unsigned CCommunicationSleepMS = 50;
+
+
 private:
     void StartListening();
 

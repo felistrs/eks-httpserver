@@ -45,7 +45,7 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
         HttpResponse response = _command_processor->ProcessRequest(&request);
 
         // Send responce
-        auto buffer = response.generate();
+        auto buffer = response.Generate();
         sock::SendBuffer(conn.sock, &buffer);
 
         break;

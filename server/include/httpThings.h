@@ -22,9 +22,31 @@ struct HttpRequest {
 
 class HttpResponse {
 public:
-    Buffer generate();
+    enum Status {
+        Continue = 100,
+        OK = 200,
+        NotModified = 304,
+        BadRequest = 400,
+        NotFound = 404,
+        PreconditionFailed = 412,
+        ServerError = 500,
+        NotImplemented = 501
+    };
 
-    std::string data = "HTTP/1.1 403 Forbidden\r\n\0";
+    void change_status(unsigned status_code);
+
+    Buffer Generate();
+
+public:
+    void set_text(std::string text) { _text = text; }
+
+
+private:
+    std::string _protocol = "HTTP/1.1";
+    unsigned _responce_status = 200;
+    std::string _responce_status_text = "OK";
+
+    std::string _text;
 };
 
 

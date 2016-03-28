@@ -14,6 +14,8 @@ print(r.status, r.reason)
 data1 = r.read()
 print(data1)
 
+conn.close()
+
 # conn.request("GET", "/")
 # r = conn.getresponse()
 # while not r.closed:
