@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include <exception>
+#include <iostream> // !!!
 
 #include "server.h"
 
@@ -36,13 +37,6 @@ void Server::StartAsync()
 
     StartListening();
 
-    fd_set main_set_fd;
-    FD_ZERO(&main_set_fd); // clear set
-    FD_SET(_main_sock, &main_set_fd); // add socket
-    socket_handler max_fd = _main_sock;
-
-    int activity_res;
-
     // Starts new thread for communications
     _comm_thread = unique_ptr<thread>(
         new thread([](Server *server){
@@ -53,15 +47,12 @@ void Server::StartAsync()
 
     while (true)
     {
-        activity_res = select( max_fd + 1 , &main_set_fd, NULL , NULL , NULL);
+        std::vector<socket_handler> conn_read, conn_write, conn_except;
+        std::vector<socket_handler> conn { _main_sock };
 
-        if ((activity_res < 0) && (errno!=EINTR))
-        {
-            throw SocketException("(Server::StartAsync) Select error;");
-        }
+        sock::ObtainIdleSockets(conn, conn_read, conn_write, conn_except);
 
-        // something with main socket
-        if (FD_ISSET(_main_sock, &main_set_fd))
+        if (conn_read.size() && conn_read[0] == _main_sock)  // TODO ???
         {
             auto new_sock = sock::AcceptNewConnection(_main_sock);
             log("Accepted : "+to_string(new_sock));
@@ -73,10 +64,10 @@ void Server::StartAsync()
         }
 
         // TODO: remove next
-        this_thread::sleep_for(chrono::seconds(5));
-        log("Close ... ");
-        _thr_stop_server_flag = true;
-        break;
+//        this_thread::sleep_for(chrono::seconds(5));
+//        log("Close ... ");
+//        _thr_stop_server_flag = true;
+//        break;
 
         // sleep
         this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
@@ -120,35 +111,24 @@ void Server::OnCommunication()
         // Communicate
         if (_comm_connections.size())
         {
-            fd_set comm_set_fd;
-            FD_ZERO(&comm_set_fd); // clear set
-            socket_handler max_fd = _comm_connections[0].sock;
-            for (connection_descriptor conn : _comm_connections)
+            std::vector<socket_handler> conn_read, conn_write, conn_except;
+            std::vector<socket_handler> sock_conn;
+            for (const auto& conn : _comm_connections)
+                sock_conn.push_back(conn.sock);
+
+            sock::ObtainIdleSockets(sock_conn,
+                                    conn_read, conn_write, conn_except);
+
+            for (auto conn : conn_read)
             {
-                FD_SET(conn.sock, &comm_set_fd); // add connection to set
-                if (conn.sock > max_fd)
-                    max_fd = conn.sock;
-            }
-
-            struct timeval timeout;
-            timeout.tv_sec = 1;
-            timeout.tv_usec = 0;
-
-            int activity_res = select( max_fd + 1 , &comm_set_fd,
-                                       NULL , NULL , &timeout);
-
-            if ((activity_res < 0) && (errno!=EINTR))
-            {
-                throw SocketException("(Server::DoCommunication) Select error;");
-            }
-
-            for (connection_descriptor& conn: _comm_connections)
-            {
-                if (FD_ISSET(conn.sock, &comm_set_fd))
-                {
-                    log(to_string(conn.sock) + " need communication");
-                    OnCommunication(conn);
+                log(to_string(conn) + " need communication");
+                for (int i = 0; i < _comm_connections.size(); ++i) {  // TODO: with handler & descr.
+                    if (_comm_connections[i].sock == conn) {
+                        OnCommunication(_comm_connections[i]);
+                        break;
+                    }
                 }
+
             }
         }
 
@@ -164,7 +144,7 @@ void Server::OnCommunication()
     }
 }
 
-void Server::OnCommunication(Server::connection_descriptor &conn)
+void Server::OnCommunication(connection_descriptor &conn)
 {}
 
 void Server::StopCommunication()

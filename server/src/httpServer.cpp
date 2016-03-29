@@ -24,7 +24,7 @@ void HttpServer::OnConnect(connection_descriptor& conn)
     conn.state = conn_state::CNeedReqResp;
 }
 
-void HttpServer::OnCommunication(Server::connection_descriptor &conn)
+void HttpServer::OnCommunication(connection_descriptor &conn)
 {
     using namespace std;
 
@@ -67,7 +67,7 @@ void HttpServer::OnCommunication(Server::connection_descriptor &conn)
 void HttpServer::OnDisconnect(connection_descriptor& conn)
 {}
 
-Buffer HttpServer::GetBuffer(Server::connection_descriptor &conn)
+Buffer HttpServer::GetBuffer(connection_descriptor &conn)
 {
     auto buff = sock::RecvBuffer(conn.sock);
 

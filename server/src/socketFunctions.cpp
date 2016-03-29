@@ -132,4 +132,78 @@ Buffer RecvBuffer(socket_handler sock)
 }
 
 
+namespace {
+
+enum class SelectType {
+    Read, Write, Exception
+};
+
+std::vector<socket_handler> ObtainIdleSocketsFor(
+        SelectType type,
+        const std::vector<socket_handler> &connections,
+        unsigned microsec_delay)
+{
+    std::vector<socket_handler> socks;
+
+    fd_set set_fd;
+    FD_ZERO(&set_fd); // clear set
+    socket_handler max_fd = connections[0];
+    for (const auto& conn : connections)
+    {
+        FD_SET(conn, &set_fd); // add connection to set
+        if (conn> max_fd)
+            max_fd = conn;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = microsec_delay;
+
+    fd_set* read_fd = (type == SelectType::Read) ? &set_fd : NULL;
+    fd_set* write_fd = (type == SelectType::Write) ? &set_fd : NULL;
+    fd_set* except_fd = (type == SelectType::Exception) ? &set_fd : NULL;
+
+    int activity_res = ::select(max_fd + 1, read_fd,
+                               write_fd, except_fd, &timeout);
+
+    if ((activity_res < 0) && (errno!=EINTR))
+    {
+        throw SocketException("(Server::DoCommunication) Select error;");
+    }
+
+    for (const auto& conn: connections)
+    {
+        if (FD_ISSET(conn, &set_fd))
+        {
+            socks.push_back(conn);
+        }
+    }
+
+    return socks;
+}
+
+}
+
+
+void ObtainIdleSockets(
+        const std::vector<socket_handler> &connections,
+        std::vector<socket_handler> &read_out,
+        std::vector<socket_handler> &write_out,
+        std::vector<socket_handler> &exception_out)
+{
+    if (connections.size())
+    {
+        read_out = ObtainIdleSocketsFor(SelectType::Read, connections, 0);
+        write_out = ObtainIdleSocketsFor(SelectType::Write, connections, 0);
+        exception_out = ObtainIdleSocketsFor(SelectType::Exception, connections, 1000);
+    }
+    else
+    {
+        read_out.clear();
+        write_out.clear();
+        exception_out.clear();
+    }
+}
+
+
 } }

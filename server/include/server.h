@@ -19,12 +19,6 @@ public:
     virtual ~Server();
 
 
-    struct connection_descriptor {
-        socket_handler sock = 0;
-        int state = 0;
-    };
-
-
     void StartAsync();
     void Stop();
 

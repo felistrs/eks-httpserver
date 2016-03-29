@@ -11,6 +11,10 @@ namespace server {
 
 using socket_handler = int;
 
+struct connection_descriptor {
+    socket_handler sock = 0;
+    int state = 0;
+};
 
 //using socket_handler = int;
 
