@@ -13,48 +13,96 @@
 namespace server { namespace sock {
 
 
+const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
+
+
 socket_handler CreateSocketForServer(int port)
 {
-    socket_handler descriptor;
+    socket_handler descriptor = 0;
 
-    addrinfo hints;
-    addrinfo  *tmp_res;
+    bool all_is_ok = false;
+    bool state_1_addr = false, state_2_socket = false,
+         state_3_opt = false, state_4_bind = false;
+    int addr_status, socket_status, opt_status, bind_status, sock_err;
+    std::string err_info;
 
-    // init socket
-    std::memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
 
-    std::string port_str = std::to_string(port);
-    int status;
-    if ((status = ::getaddrinfo(NULL, port_str.c_str(), &hints, &tmp_res)) != 0)
+    do {
+        // Get Addr Info
+        addrinfo hints;
+        addrinfo *addr;
+
+        std::memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_PASSIVE;
+
+        std::string port_str = std::to_string(port);
+
+        addr_status = ::getaddrinfo(NULL, port_str.c_str(), &hints, &addr);
+
+        if (addr_status == -1)
+        {
+            sock_err = errno;
+            err_info = "GetAddrInfo failed";
+            break;
+        }
+        state_1_addr = true;
+
+        // Socket
+        socket_status = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+        if (socket_status <= 0)
+        {
+            sock_err = errno;
+            err_info = "Socket failed";
+            break;
+        }
+        state_2_socket = true;
+
+        // Change Options
+        int opt = 1; // TRUE
+        opt_status = ::setsockopt(socket_status, SOL_SOCKET, SO_REUSEADDR,
+                       (char *)&opt, sizeof(opt));
+        if (opt_status == -1)
+        {
+            sock_err = errno;
+            err_info = "SetSockOpt failed";
+            break;
+        }
+        state_3_opt = true;
+
+        // Bind
+        bind_status = ::bind(socket_status, addr->ai_addr, addr->ai_addrlen);
+        if (bind_status == -1)
+        {
+            sock_err = errno;
+            err_info = "Bind failed";
+            break;
+        }
+        state_4_bind = true;
+
+        // Everything is OK
+        descriptor = socket_status;
+        all_is_ok = true;
+    } while (false);
+
+    if (!all_is_ok)
     {
-        std::string info = ::gai_strerror(status);
-        throw SocketException(info);
-    }
+        if (state_1_addr) {
+            if (state_2_socket) {
+                if (state_3_opt) {
+                    if (state_4_bind) {
+                        // unroll 4-th (bind)
+                    }
+                    // unroll 3-rd (opt)
+                }
+                // unroll 2-nd (socket)
+                ::shutdown(socket_status, 2);
+            }
+            // unroll 1-st (addr)
+        }
 
-    descriptor = ::socket(
-                tmp_res->ai_family,
-                tmp_res->ai_socktype,
-                tmp_res->ai_protocol);
-    // TODO: delete tmp_res ?
-
-    if (descriptor == 0)
-    {
-        throw SocketException("Main socket was not created.");
-    }
-
-    int opt = 1; // TRUE
-    if( ::setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR,
-                   (char *)&opt, sizeof(opt)) < 0 )
-    {
-        throw SocketException("Not set option for multiple listeners.");
-    }
-
-    if ( ::bind(descriptor, tmp_res->ai_addr, tmp_res->ai_addrlen) < 0)
-    {
-        throw SocketException("Bind failed");
+        throw SocketException(err_info, sock_err, ::strerror(sock_err));
     }
 
     return descriptor;
@@ -62,25 +110,25 @@ socket_handler CreateSocketForServer(int port)
 
 void StartListening(socket_handler descriptor, int max_connections)
 {
-    if ( ::listen(descriptor, max_connections) < 0 )
-    {
-        throw SocketException("Listen failed");
-    }
+    int status = ::listen(descriptor, max_connections);
 
-    log( "Listening... ." );
+    if ( status == -1 )
+    {
+        auto err = errno;
+        throw SocketException("Listen failed", err, ::strerror(err) );
+    }
 }
 
 socket_handler AcceptNewConnection(socket_handler descriptor)
 {
-    socket_handler new_fd;
-
     struct sockaddr_storage _their_addr;
     socklen_t addr_size = sizeof _their_addr;
 
-    if ((new_fd = ::accept(descriptor, (struct sockaddr *)&_their_addr, &addr_size)) == -1)
+    socket_handler new_fd = ::accept(descriptor, (struct sockaddr *)&_their_addr, &addr_size);
+    if (new_fd == -1)
     {
-        std::string info = "Accept error : " + std::to_string(errno); // TODO: read string
-        throw SocketException(info);
+        auto err = errno;
+        throw SocketException("Accept failed", err, ::strerror(err));
     }
 
     return new_fd;
@@ -88,25 +136,33 @@ socket_handler AcceptNewConnection(socket_handler descriptor)
 
 void CloseSocket(int descriptor)
 {
-    ::shutdown(descriptor, 2);
+    int status = ::shutdown(descriptor, 2);
+
+    if (status == -1)
+    {
+        auto err = errno;
+        throw SocketException("Close socket failed", err, ::strerror(err));
+    }
 }
 
 void SendBuffer(socket_handler sock, Buffer* buffer)
 {
-    ssize_t res = ::send(sock, buffer->data().data(), buffer->size(), 0);
+    using namespace std;
 
-    if (res == ENOTCONN)
+    ssize_t needed_sz = buffer->size();
+    ssize_t res = ::send(sock, buffer->data().data(), needed_sz, 0);
+
+    if (res == -1)
     {
-        throw SocketException("(Server::SendBuffer) : socket is not connected");
+        auto err = errno;
+        string info = err == EMSGSIZE ?
+                    "Send data is too large" : "Send failed";
+        throw SocketException(info, err, ::strerror(err));
     }
-    else if (res == EMSGSIZE)
+    else if (res != buffer->size())
     {
-        throw SocketException("(Server::SendBuffer) : send data is too large");
-    }
-    else // if (res != buffer->size())
-    {
-        //throw SocketException("(Server::SendBuffer) : " + );
-        warning("send : " + std::to_string(res) );
+        warning("Sent " + to_string(res) +
+                " instead of " + to_string(needed_sz) );
     }
 }
 
@@ -114,20 +170,23 @@ Buffer RecvBuffer(socket_handler sock)
 {
     using namespace std;
 
-    Buffer res;
-
-    const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
     vector<char> read_buffer(c_read_buffer_sz);
 
     ssize_t read_sz = ::recv(sock, read_buffer.data(),
                            c_read_buffer_sz, 0);
 
+    if (read_sz == -1)
+    {
+        auto err = errno;
+        throw SocketException("RecvBuffer failed", err, ::strerror(err));
+    }
+
     if (read_sz)
     {
-        return Buffer(std::move(read_buffer), read_sz);
+        return Buffer(move(read_buffer), read_sz);
     }
     else {
-        return res;
+        return Buffer();
     }
 }
 
@@ -163,12 +222,15 @@ std::vector<socket_handler> ObtainIdleSocketsFor(
     fd_set* write_fd = (type == SelectType::Write) ? &set_fd : NULL;
     fd_set* except_fd = (type == SelectType::Exception) ? &set_fd : NULL;
 
-    int activity_res = ::select(max_fd + 1, read_fd,
-                               write_fd, except_fd, &timeout);
+    int status = ::select(max_fd + 1, read_fd, write_fd, except_fd, &timeout);
 
-    if ((activity_res < 0) && (errno!=EINTR))
+    if (status == -1)
     {
-        throw SocketException("(Server::DoCommunication) Select error;");
+        auto err = errno;
+        if (err != EINTR) // signal was captured
+        {
+            throw SocketException("Select failed", err, ::strerror(err));
+        }
     }
 
     for (const auto& conn: connections)
@@ -195,7 +257,7 @@ void ObtainIdleSockets(
     {
         read_out = ObtainIdleSocketsFor(SelectType::Read, connections, 0);
         write_out = ObtainIdleSocketsFor(SelectType::Write, connections, 0);
-        exception_out = ObtainIdleSocketsFor(SelectType::Exception, connections, 1000);
+        exception_out = ObtainIdleSocketsFor(SelectType::Exception, connections, 0);
     }
     else
     {

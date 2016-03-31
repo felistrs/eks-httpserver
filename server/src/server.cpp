@@ -36,6 +36,7 @@ void Server::StartAsync()
     using namespace std;
 
     StartListening();
+    log( "Listening... ." );
 
     // Starts new thread for communications
     _comm_thread = unique_ptr<thread>(
@@ -62,6 +63,9 @@ void Server::StartAsync()
                 _thr_new_connections.push_back(new_sock);
             }
         }
+
+        // TODO: conn_write
+        // TODO: conn_except
 
         // TODO: remove next
 //        this_thread::sleep_for(chrono::seconds(5));

@@ -34,10 +34,15 @@ struct connection_descriptor {
 class SocketException : public std::exception
 {
 public:
-    SocketException(std::string info) :
-        info(info) {}
+    SocketException(std::string info, unsigned err_code, std::string err_str) :
+        info(info),
+        _error_code(err_code),
+        _error_str(err_str)
+    {}
 
     std::string info;
+    unsigned _error_code;
+    std::string _error_str;
 };
 
 
