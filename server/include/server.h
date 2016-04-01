@@ -53,11 +53,11 @@ private:
     int _max_connections = 100;
 
     // socket
-    socket_handler _main_sock;
+    connection_handler _main_sock;
 
     //
     std::mutex _lock_connections;
-    std::vector<socket_handler> _thr_new_connections;
+    std::vector<connection_handler> _thr_new_connections;
 
     // thread for communication
     std::unique_ptr<std::thread> _comm_thread;

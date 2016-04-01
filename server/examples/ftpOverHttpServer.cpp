@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     }
     catch (SocketException& e) // TODO: here ?
     {
-        std::cerr << "Socket exception: " << e.info << "/" << e.what() << std::endl;
+        std::cerr << "Socket exception: " << e.info << " / " << e._error_str << " / " << e.what() << std::endl;
     }
     catch (std::exception& e)
     {

@@ -26,6 +26,7 @@ Server::~Server()
 void Server::StartListening()
 {
     _main_sock = sock::CreateSocketForServer(_port);
+
     sock::StartListening(_main_sock, max_connections());
 
     _is_running = true;
@@ -48,10 +49,10 @@ void Server::StartAsync()
 
     while (true)
     {
-        std::vector<socket_handler> conn_read, conn_write, conn_except;
-        std::vector<socket_handler> conn { _main_sock };
+        std::vector<connection_handler> conn_read;
+        std::vector<connection_handler> conn { _main_sock };
 
-        sock::ObtainIdleSockets(conn, conn_read, conn_write, conn_except);
+        sock::ObtainIdleSockets(conn, &conn_read, nullptr, nullptr);
 
         if (conn_read.size() && conn_read[0] == _main_sock)  // TODO ???
         {
@@ -64,8 +65,8 @@ void Server::StartAsync()
             }
         }
 
-        // TODO: conn_write
-        // TODO: conn_except
+        // TODO: conn_write !!!
+        // TODO: conn_except !!!
 
         // TODO: remove next
 //        this_thread::sleep_for(chrono::seconds(5));
@@ -103,7 +104,7 @@ void Server::OnCommunication()
         {
             unique_lock<mutex> lock(_lock_connections);
 
-            for (socket_handler sock : _thr_new_connections) {
+            for (auto sock : _thr_new_connections) {
                 connection_descriptor conn;
                 conn.sock = sock;
                 _comm_connections.push_back(conn);
@@ -115,13 +116,12 @@ void Server::OnCommunication()
         // Communicate
         if (_comm_connections.size())
         {
-            std::vector<socket_handler> conn_read, conn_write, conn_except;
-            std::vector<socket_handler> sock_conn;
+            std::vector<connection_handler> conn_read, conn_write, conn_except;
+            std::vector<connection_handler> sock_conn;
             for (const auto& conn : _comm_connections)
                 sock_conn.push_back(conn.sock);
 
-            sock::ObtainIdleSockets(sock_conn,
-                                    conn_read, conn_write, conn_except);
+            sock::ObtainIdleSockets(sock_conn, &conn_read, &conn_write, &conn_except);
 
             for (auto conn : conn_read)
             {

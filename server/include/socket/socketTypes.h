@@ -9,26 +9,25 @@
 namespace server {
 
 
-using socket_handler = int;
 
-struct connection_descriptor {
-    socket_handler sock = 0;
+using connection_handler = int;
+
+const connection_handler CONNECTION_HANDLER_INVALID = -1;
+
+
+struct connection_descriptor_ {
+    enum class Type { CNone, CSocket };
+
+    Type type = Type::CNone;
+    int sock_handler = 0;
+};
+
+
+struct connection_descriptor {  // TODO: rem
+    connection_handler sock = 0;
     int state = 0;
 };
 
-//using socket_handler = int;
-
-//struct socket_descriptor {
-//    enum class Type { CNone, CSocket };
-
-//    Type type = Type::CNone;
-//    int sock_handler = 0;
-//};
-
-
-//socket_handler generateSocketHandler();
-//void releaseSocketHandler(socket_handler handler);
-//bool testIfAllHandlersReleased();
 
 
 class SocketException : public std::exception
@@ -44,6 +43,13 @@ public:
     unsigned _error_code;
     std::string _error_str;
 };
+
+
+connection_handler generateConnectionHandler(int sock); // TODO: ???
+void releaseConnectionHandler(connection_handler handler);
+bool testIfAllHandlersReleased();
+
+int GetSocket(connection_handler handler);
 
 
 }

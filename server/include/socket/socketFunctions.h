@@ -11,19 +11,19 @@
 namespace server { namespace sock {
 
 
-socket_handler CreateSocketForServer(int port);
-void StartListening(socket_handler descriptor, int max_connections);
-socket_handler AcceptNewConnection(socket_handler descriptor);
-void CloseSocket(socket_handler descriptor);
+connection_handler CreateSocketForServer(int port);
+void StartListening(connection_handler descriptor, int max_connections);
+connection_handler AcceptNewConnection(connection_handler descriptor);
+void CloseSocket(connection_handler descriptor);
 
 void ObtainIdleSockets(
-        const std::vector<socket_handler>& connections,
-        std::vector<socket_handler>& read_out,
-        std::vector<socket_handler>& write_out,
-        std::vector<socket_handler>& exception_out);
+        const std::vector<connection_handler>& connections,
+        std::vector<connection_handler> *read_out,
+        std::vector<connection_handler> *write_out,
+        std::vector<connection_handler> *exception_out);
 
-void SendBuffer(socket_handler sock, Buffer* buffer);
-Buffer RecvBuffer(socket_handler sock);
+void SendBuffer(connection_handler sock, Buffer* buffer);
+Buffer RecvBuffer(connection_handler sock);
 
 
 } }

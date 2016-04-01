@@ -1,4 +1,5 @@
 #include <cstring>
+#include <assert.h>
 
 #include <chrono>
 #include <iostream>
@@ -15,8 +16,9 @@ namespace server { namespace sock {
 
 const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
 
+using socket_handler = int;
 
-socket_handler CreateSocketForServer(int port)
+connection_handler CreateSocketForServer(int port)
 {
     socket_handler descriptor = 0;
 
@@ -105,11 +107,13 @@ socket_handler CreateSocketForServer(int port)
         throw SocketException(err_info, sock_err, ::strerror(sock_err));
     }
 
-    return descriptor;
+    return generateConnectionHandler(descriptor);
 }
 
-void StartListening(socket_handler descriptor, int max_connections)
+void StartListening(connection_handler handler, int max_connections)
 {
+    int descriptor = GetSocket(handler);
+
     int status = ::listen(descriptor, max_connections);
 
     if ( status == -1 )
@@ -119,23 +123,28 @@ void StartListening(socket_handler descriptor, int max_connections)
     }
 }
 
-socket_handler AcceptNewConnection(socket_handler descriptor)
+connection_handler AcceptNewConnection(connection_handler handler)
 {
+    int descriptor = GetSocket(handler);
+
     struct sockaddr_storage _their_addr;
     socklen_t addr_size = sizeof _their_addr;
 
-    socket_handler new_fd = ::accept(descriptor, (struct sockaddr *)&_their_addr, &addr_size);
+    connection_handler new_fd = ::accept(descriptor, (struct sockaddr *)&_their_addr, &addr_size);
     if (new_fd == -1)
     {
         auto err = errno;
         throw SocketException("Accept failed", err, ::strerror(err));
     }
 
-    return new_fd;
+    return generateConnectionHandler(new_fd);
 }
 
-void CloseSocket(int descriptor)
+void CloseSocket(int handler)
 {
+    int descriptor = GetSocket(handler);
+    releaseConnectionHandler(handler);  // TODO: bug, need lock
+
     int status = ::shutdown(descriptor, 2);
 
     if (status == -1)
@@ -145,9 +154,11 @@ void CloseSocket(int descriptor)
     }
 }
 
-void SendBuffer(socket_handler sock, Buffer* buffer)
+void SendBuffer(connection_handler handler, Buffer* buffer)
 {
     using namespace std;
+
+    int sock = GetSocket(handler);
 
     ssize_t needed_sz = buffer->size();
     ssize_t res = ::send(sock, buffer->data().data(), needed_sz, 0);
@@ -166,9 +177,11 @@ void SendBuffer(socket_handler sock, Buffer* buffer)
     }
 }
 
-Buffer RecvBuffer(socket_handler sock)
+Buffer RecvBuffer(connection_handler handler)
 {
     using namespace std;
+
+    int sock = GetSocket(handler);
 
     vector<char> read_buffer(c_read_buffer_sz);
 
@@ -197,21 +210,24 @@ enum class SelectType {
     Read, Write, Exception
 };
 
-std::vector<socket_handler> ObtainIdleSocketsFor(
+void ObtainIdleSocketsFor(
         SelectType type,
-        const std::vector<socket_handler> &connections,
+        const std::vector<connection_handler> &connections,
+        std::vector<connection_handler>* socks,
         unsigned microsec_delay)
 {
-    std::vector<socket_handler> socks;
+    assert(socks);
+    socks->clear();
 
     fd_set set_fd;
     FD_ZERO(&set_fd); // clear set
-    socket_handler max_fd = connections[0];
+    int max_fd = GetSocket(connections[0]);
     for (const auto& conn : connections)
     {
-        FD_SET(conn, &set_fd); // add connection to set
-        if (conn> max_fd)
-            max_fd = conn;
+        int sock = GetSocket(conn);
+        FD_SET(sock, &set_fd); // add connection to set
+        if (sock > max_fd)
+            max_fd = sock;
     }
 
     struct timeval timeout;
@@ -235,35 +251,47 @@ std::vector<socket_handler> ObtainIdleSocketsFor(
 
     for (const auto& conn: connections)
     {
-        if (FD_ISSET(conn, &set_fd))
+        int sock = GetSocket(conn);
+        if (FD_ISSET(sock, &set_fd))
         {
-            socks.push_back(conn);
+            socks->push_back(conn);
         }
     }
-
-    return socks;
 }
 
 }
 
 
 void ObtainIdleSockets(
-        const std::vector<socket_handler> &connections,
-        std::vector<socket_handler> &read_out,
-        std::vector<socket_handler> &write_out,
-        std::vector<socket_handler> &exception_out)
+        const std::vector<connection_handler> &connections,
+        std::vector<connection_handler> *read_out,
+        std::vector<connection_handler> *write_out,
+        std::vector<connection_handler> *exception_out)
 {
     if (connections.size())
     {
-        read_out = ObtainIdleSocketsFor(SelectType::Read, connections, 0);
-        write_out = ObtainIdleSocketsFor(SelectType::Write, connections, 0);
-        exception_out = ObtainIdleSocketsFor(SelectType::Exception, connections, 0);
+        if (read_out)
+            ObtainIdleSocketsFor(SelectType::Read,
+                    connections, read_out, 0);
+
+        if (write_out)
+            ObtainIdleSocketsFor(SelectType::Write,
+                    connections, write_out, 0);
+
+        if (exception_out)
+            ObtainIdleSocketsFor(SelectType::Exception,
+                    connections, exception_out, 0);
     }
     else
     {
-        read_out.clear();
-        write_out.clear();
-        exception_out.clear();
+        if (read_out)
+            read_out->clear();
+
+        if (write_out)
+            write_out->clear();
+
+        if (exception_out)
+            exception_out->clear();
     }
 }
 
