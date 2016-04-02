@@ -29,6 +29,10 @@ int main(int argc, char **argv)
     {
         std::cerr << "Socket exception: " << e.info << " / " << e._error_str << " / " << e.what() << std::endl;
     }
+    catch (ConnectionException& e)
+    {
+        std::cerr << "Connection exception: " << e.info << " / " << e.what() << std::endl;
+    }
     catch (std::exception& e)
     {
         std::cerr << "Server exception: " << e.what() << std::endl;

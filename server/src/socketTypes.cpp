@@ -72,17 +72,17 @@ bool testIfAllHandlersReleased()
     return g_connection_descriptors.empty();
 }
 
-int GetSocket(connection_handler handler)
+connection_descriptor_* GetConnectionDescriptor(connection_handler handler)
 {
     std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
 
     auto it = g_connection_descriptors.find(handler);
     if (it != g_connection_descriptors.end())
-        return it->second.sock_handler;
+        return &(it->second);
     else
     {
         error("Request for bad handler");
-        return 0;
+        return nullptr;
     }
 }
 

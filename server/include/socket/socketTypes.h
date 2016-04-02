@@ -30,6 +30,17 @@ struct connection_descriptor {  // TODO: rem
 
 
 
+class ConnectionException : public std::exception
+{
+public:
+    ConnectionException(std::string info) :
+        info(info)
+    {}
+
+    std::string info;
+};
+
+
 class SocketException : public std::exception
 {
 public:
@@ -49,7 +60,7 @@ connection_handler generateConnectionHandler(int sock); // TODO: ???
 void releaseConnectionHandler(connection_handler handler);
 bool testIfAllHandlersReleased();
 
-int GetSocket(connection_handler handler);
+connection_descriptor_* GetConnectionDescriptor(connection_handler handler);
 
 
 }
