@@ -18,6 +18,9 @@ public:
     std::vector<std::string> GetFilesList(std::string path);
     DataProvider GetFileDataProvider(std::string fpath);
 
+    bool IsFolder(std::string path);
+    bool IsFile(std::string path);
+
 private:
     std::string _root;
 };

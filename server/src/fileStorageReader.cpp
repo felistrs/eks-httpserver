@@ -68,3 +68,27 @@ DataProvider FileStorageReader::GetFileDataProvider(std::string fpath)
         return DataProvider(fpath); // TODO: remove this, throw exception
     }
 }
+
+bool FileStorageReader::IsFolder(std::string path) {
+    struct stat stat_;
+    int status = stat(path.c_str(), &stat_);
+
+    if (status == 0)
+    {
+        return bool(stat_.st_mode & S_IFDIR);
+    }
+
+    return false;
+}
+
+bool FileStorageReader::IsFile(std::string path) {
+    struct stat stat_;
+    int status = stat(path.c_str(), &stat_);
+
+    if (status == 0)
+    {
+        return bool(stat_.st_mode & S_IFREG);
+    }
+
+    return false;
+}

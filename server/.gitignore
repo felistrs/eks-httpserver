@@ -75,3 +75,7 @@ Thumbs.db
 build/
 CMakeLists.txt.user
 
+
+# CLion
+.idea/
+
