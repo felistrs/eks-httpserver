@@ -5,6 +5,7 @@
 #include "ftp_over_http/ftpCommandProcessor.h"
 #include "httpServer.h"
 #include "utils/fileStorageReader.h"
+#include "utils/logger.h"
 
 
 int main(int argc, char **argv)
@@ -23,22 +24,21 @@ int main(int argc, char **argv)
         HttpServer http_server(command_processor.get());
         http_server.set_listening_port(1234);
 
-        http_server.StartAsync();
+        http_server.Start();
     }
     catch (SocketException& e) // TODO: here ?
     {
-        std::cerr << "Socket exception: " << e.info << " / " << e._error_str << " / " << e.what() << std::endl;
+        error("Socket exception: " + e.info + " / " + e._error_str + " / " + e.what() );
     }
     catch (ConnectionException& e)
     {
-        std::cerr << "Connection exception: " << e.info << " / " << e.what() << std::endl;
+        error("Connection exception: " + e.info + " / " + e.what() );
     }
     catch (std::exception& e)
     {
-        std::cerr << "Server exception: " << e.what() << std::endl;
+        error(string("Server exception: ") + e.what() );
     }
 
-    std::cout << "END." << std::endl;
-
+    log("END.");
     return 0;
 }

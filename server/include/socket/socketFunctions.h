@@ -11,12 +11,12 @@
 namespace server { namespace sock {
 
 
-connection_handler CreateSocketForServer(int port);
+connection_handler CreateConnectionForServer(int port);
 void StartListening(connection_handler descriptor, int max_connections);
 connection_handler AcceptNewConnection(connection_handler descriptor);
-void CloseSocket(connection_handler descriptor);
+void CloseConnection(connection_handler descriptor);
 
-void ObtainIdleSockets(
+void ObtainIdleConnections(
         const std::vector<connection_handler>& connections,
         std::vector<connection_handler> *read_out,
         std::vector<connection_handler> *write_out,

@@ -19,7 +19,7 @@ const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
 using socket_handler = int;
 
 
-connection_handler CreateSocketForServer(int port)
+connection_handler CreateConnectionForServer(int port)
 {
     socket_handler sock_descriptor = 0;
 
@@ -160,7 +160,7 @@ connection_handler AcceptNewConnection(connection_handler handler)
     return result;
 }
 
-void CloseSocket(int handler)
+void CloseConnection(int handler)
 {
     auto descr = GetConnectionDescriptor(handler);
     if (descr)
@@ -321,7 +321,7 @@ void ObtainIdleSocketsFor(
 }
 
 
-void ObtainIdleSockets(
+void ObtainIdleConnections(
         const std::vector<connection_handler> &connections,
         std::vector<connection_handler> *read_out,
         std::vector<connection_handler> *write_out,

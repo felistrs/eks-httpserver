@@ -19,7 +19,7 @@ public:
     virtual ~Server();
 
 
-    void StartAsync();
+    void Start();
     void Stop();
 
     virtual void OnConnect(connection_handler conn) = 0;

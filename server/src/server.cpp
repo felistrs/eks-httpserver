@@ -32,7 +32,7 @@ void Server::StartListening()
     _is_running = true;
 }
 
-void Server::StartAsync()
+void Server::Start()
 {
     using namespace std;
 
