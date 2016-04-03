@@ -20,9 +20,9 @@ public:
     HttpServer(HttpCommandProcessorInterface* processor);
     virtual ~HttpServer() {}
 
-    void OnConnect(connection_descriptor& conn) override;
-    void OnCommunication(connection_descriptor& conn) override;
-    void OnDisconnect(connection_descriptor& conn) override;
+    void OnConnect(connection_handler conn) override;
+    void OnCommunication(connection_handler conn) override;
+    void OnDisconnect(connection_handler conn) override;
 
 
 protected:
@@ -35,7 +35,7 @@ protected:
 
 
 private:
-    Buffer GetBuffer(connection_descriptor& conn);
+    Buffer GetBuffer(connection_handler conn);
 
     HttpRequest ReadRequest(Buffer* buff);
 

@@ -21,7 +21,7 @@ using socket_handler = int;
 
 connection_handler CreateSocketForServer(int port)
 {
-    socket_handler descriptor = 0;
+    socket_handler sock_descriptor = 0;
 
     bool all_is_ok = false;
     bool state_1_addr = false, state_2_socket = false,
@@ -85,7 +85,7 @@ connection_handler CreateSocketForServer(int port)
         state_4_bind = true;
 
         // Everything is OK
-        descriptor = socket_status;
+        sock_descriptor = socket_status;
         all_is_ok = true;
     } while (false);
 
@@ -108,7 +108,9 @@ connection_handler CreateSocketForServer(int port)
         throw SocketException(err_info, sock_err, ::strerror(sock_err));
     }
 
-    return generateConnectionHandler(descriptor);
+    auto p = generateConnectionHandler();
+    p.second->sock_handler = sock_descriptor;
+    return p.first;
 }
 
 void StartListening(connection_handler handler, int max_connections)
@@ -147,7 +149,9 @@ connection_handler AcceptNewConnection(connection_handler handler)
             throw SocketException("Accept failed", err, ::strerror(err));
         }
 
-        result = generateConnectionHandler(new_fd);
+        auto p = generateConnectionHandler();
+        p.second->sock_handler = new_fd;
+        result = p.first;
     }
     else {
         throw ConnectionException("AcceptNewConnection: handler is invalid");

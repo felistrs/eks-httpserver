@@ -22,9 +22,9 @@ public:
     void StartAsync();
     void Stop();
 
-    virtual void OnConnect(connection_descriptor& conn) = 0;
-    virtual void OnCommunication(connection_descriptor& conn) = 0;
-    virtual void OnDisconnect(connection_descriptor& conn) = 0;
+    virtual void OnConnect(connection_handler conn) = 0;
+    virtual void OnCommunication(connection_handler conn) = 0;
+    virtual void OnDisconnect(connection_handler conn) = 0;
 
 public:
     void set_listening_port(int port) { _port = port; }
@@ -63,8 +63,7 @@ private:
     std::unique_ptr<std::thread> _comm_thread;
     bool _thr_stop_server_flag = false;
 
-    std::vector<connection_descriptor> _comm_connections;
-
+    std::vector<connection_handler> _comm_connections;
 };
 
 

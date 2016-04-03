@@ -65,9 +65,6 @@ void Server::StartAsync()
             }
         }
 
-        // TODO: conn_write !!!
-        // TODO: conn_except !!!
-
         // TODO: remove next
 //        this_thread::sleep_for(chrono::seconds(5));
 //        log("Close ... ");
@@ -104,10 +101,8 @@ void Server::OnCommunication()
         {
             unique_lock<mutex> lock(_lock_connections);
 
-            for (auto sock : _thr_new_connections) {
-                connection_descriptor conn;
-                conn.sock = sock;
-                _comm_connections.push_back(conn);
+            for (auto connection_handler : _thr_new_connections) {
+                _comm_connections.push_back(connection_handler);
                 OnConnect(_comm_connections.back());
             }
             _thr_new_connections.clear();
@@ -117,22 +112,14 @@ void Server::OnCommunication()
         if (_comm_connections.size())
         {
             std::vector<connection_handler> conn_read, conn_write, conn_except;
-            std::vector<connection_handler> sock_conn;
-            for (const auto& conn : _comm_connections)
-                sock_conn.push_back(conn.sock);
+            std::vector<connection_handler> sock_conn = _comm_connections;
 
             sock::ObtainIdleSockets(sock_conn, &conn_read, &conn_write, &conn_except);
 
-            for (auto conn : conn_read)
+            for (auto conn_handler : conn_read)
             {
-                log(to_string(conn) + " need communication");
-                for (int i = 0; i < _comm_connections.size(); ++i) {  // TODO: with handler & descr.
-                    if (_comm_connections[i].sock == conn) {
-                        OnCommunication(_comm_connections[i]);
-                        break;
-                    }
-                }
-
+                log(to_string(conn_handler) + " need communication");
+                OnCommunication(conn_handler);
             }
         }
 
@@ -148,7 +135,7 @@ void Server::OnCommunication()
     }
 }
 
-void Server::OnCommunication(connection_descriptor &conn)
+void Server::OnCommunication(connection_handler conn)
 {}
 
 void Server::StopCommunication()
@@ -167,9 +154,9 @@ void Server::StopCommunication()
 
 void Server::CloseAllConnections()
 {
-    for (auto conn : _comm_connections)
+    for (auto conn_handler : _comm_connections)
     {
-        sock::CloseSocket(conn.sock);
+        sock::CloseSocket(conn_handler);
     }
     _comm_connections.clear();
 }

@@ -14,12 +14,13 @@ static connection_handler g_handler_counter = 0;
 static std::mutex g_lock_connection_descriptors;
 
 
-connection_handler generateConnectionHandler(int sock) // TODO: ???
+std::pair<connection_handler, connection_descriptor_*> generateConnectionHandler()
 {
     std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
 
     bool found = false;
     connection_handler handler = CONNECTION_HANDLER_INVALID;
+    connection_descriptor_* descr = nullptr;
 
     // Search for empty slot
     connection_handler h_start = g_handler_counter;
@@ -47,10 +48,10 @@ connection_handler generateConnectionHandler(int sock) // TODO: ???
     {
         handler = g_handler_counter;
         g_connection_descriptors[handler] = connection_descriptor_();
-        g_connection_descriptors[handler].sock_handler = sock;
+        descr = &g_connection_descriptors[handler];
     }
 
-    return handler;
+    return std::make_pair(handler, descr);
 }
 
 void releaseConnectionHandler(connection_handler handler)

@@ -19,57 +19,72 @@ HttpServer::HttpServer(HttpCommandProcessorInterface *processor) :
     _command_processor(processor)
 {}
 
-void HttpServer::OnConnect(connection_descriptor& conn)
+void HttpServer::OnConnect(connection_handler handler)
 {
-    conn.state = conn_state::CNeedReqResp;
+    auto descr = GetConnectionDescriptor(handler);
+    if (descr)
+    {
+        descr->state = conn_state::CNeedReqResp;
+    }
+    else {
+        throw ConnectionException("HttpServer::OnConnect : invalid handler");
+    }
 }
 
-void HttpServer::OnCommunication(connection_descriptor &conn)
+void HttpServer::OnCommunication(connection_handler handler)
 {
     using namespace std;
 
-    switch (conn.state) {
-    case conn_state::CNone:
-        warning("(HttpServer::OnCommunication) : " + to_string(conn.sock) +
-                " connection not initialized.");
-        break;
+    auto descr = GetConnectionDescriptor(handler);
 
-    case conn_state::CNeedReqResp:
+    if (descr)
     {
-        // Read request
-        Buffer buff = GetBuffer(conn);
-        HttpRequest request = ReadRequest(&buff);
+        switch (descr->state) {
+        case conn_state::CNone:
+            warning("(HttpServer::OnCommunication) : " +
+                    to_string(descr->sock_handler) +
+                    " connection not initialized.");
+            break;
 
-        //
-        assert(_command_processor);
-        HttpResponse response = _command_processor->ProcessRequest(&request);
+        case conn_state::CNeedReqResp:
+        {
+            // Read request
+            Buffer buff = GetBuffer(handler);
+            HttpRequest request = ReadRequest(&buff);
 
-        // Send responce
-        auto buffer = response.Generate();
-        sock::SendBuffer(conn.sock, &buffer);
+            //
+            assert(_command_processor);
+            HttpResponse response = _command_processor->ProcessRequest(&request);
 
-        break;
+            // Send responce
+            auto buffer = response.Generate();
+            sock::SendBuffer(handler, &buffer);
+
+            break;
+        }
+
+        case conn_state::CDataSending:
+            break;
+
+        case conn_state::CNeedClose:
+            break;
+
+        default:
+            warning("(HttpServer::OnCommunication) not implemented state");
+            break;
+        }
     }
-
-    case conn_state::CDataSending:
-        break;
-
-    case conn_state::CNeedClose:
-        break;
-
-    default:
-        warning("(HttpServer::OnCommunication) not implemented state");
-        break;
+    else {
+        throw ConnectionException("HttpServer::OnCommunication : invalid habdler");
     }
-
 }
 
-void HttpServer::OnDisconnect(connection_descriptor& conn)
+void HttpServer::OnDisconnect(connection_handler conn)
 {}
 
-Buffer HttpServer::GetBuffer(connection_descriptor &conn)
+Buffer HttpServer::GetBuffer(connection_handler conn)
 {
-    auto buff = sock::RecvBuffer(conn.sock);
+    auto buff = sock::RecvBuffer(conn);
 
     std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
     debug_hex(buff.data());

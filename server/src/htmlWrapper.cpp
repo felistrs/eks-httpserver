@@ -18,14 +18,14 @@ void HtmlWrapper::end_paragraph()
 void HtmlWrapper::begin_list()
 {
     _list_level++;
-    _inner_html += "<lt>"; // TODO: ???
+    _inner_html += "<ul>";
 }
 
 void HtmlWrapper::end_list()
 {
     assert(_list_level > 0);
     _list_level--;
-    _inner_html += "</lt>"; // TODO: ???
+    _inner_html += "</ul>";
 }
 
 void HtmlWrapper::push_list_item(std::string text)

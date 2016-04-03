@@ -11,7 +11,6 @@ namespace server {
 
 
 using connection_handler = int;
-
 const connection_handler CONNECTION_HANDLER_INVALID = -1;
 
 
@@ -20,11 +19,6 @@ struct connection_descriptor_ {
 
     Type type = Type::CNone;
     int sock_handler = 0;
-};
-
-
-struct connection_descriptor {  // TODO: rem
-    connection_handler sock = 0;
     int state = 0;
 };
 
@@ -56,7 +50,7 @@ public:
 };
 
 
-connection_handler generateConnectionHandler(int sock); // TODO: ???
+std::pair<connection_handler, connection_descriptor_*> generateConnectionHandler();
 void releaseConnectionHandler(connection_handler handler);
 bool testIfAllHandlersReleased();
 
