@@ -35,12 +35,12 @@ protected:
 
 
 private:
-    Buffer GetBuffer(connection_handler conn);
+    DataBuffer GetBuffer(connection_handler conn);
 
-    HttpRequest ReadRequest(Buffer* buff);
+    HttpRequest ReadRequest(DataBuffer* buff);
 
     void read_chunk(
-            Buffer* in,
+            DataBuffer* in,
             std::string& buff,
             char delim = '\n') const;
 

@@ -49,7 +49,7 @@ void HttpServer::OnCommunication(connection_handler handler)
         case conn_state::CNeedReqResp:
         {
             // Read request
-            Buffer buff = GetBuffer(handler);
+            DataBuffer buff = GetBuffer(handler);
             HttpRequest request = ReadRequest(&buff);
 
             //
@@ -82,7 +82,7 @@ void HttpServer::OnCommunication(connection_handler handler)
 void HttpServer::OnDisconnect(connection_handler conn)
 {}
 
-Buffer HttpServer::GetBuffer(connection_handler conn)
+DataBuffer HttpServer::GetBuffer(connection_handler conn)
 {
     auto buff = sock::RecvBuffer(conn);
 
@@ -94,7 +94,7 @@ Buffer HttpServer::GetBuffer(connection_handler conn)
     return buff;
 }
 
-HttpRequest HttpServer::ReadRequest(Buffer* buff)
+HttpRequest HttpServer::ReadRequest(DataBuffer* buff)
 {
     using namespace std;
 
@@ -127,7 +127,7 @@ HttpRequest HttpServer::ReadRequest(Buffer* buff)
 }
 
 void HttpServer::read_chunk(
-        Buffer* in,
+        DataBuffer* in,
         std::string& buffer,
         char delim) const
 {
@@ -135,18 +135,25 @@ void HttpServer::read_chunk(
 
     buffer.clear();
 
-    while (in->peek() != delim &&
-           in->peek() != '\n' &&
-           in->peek() != EOF)
+    for (;;)
     {
-        buffer.push_back( in->get() );
+        auto next = in->peek_byte();
+
+        if (!next.second ||
+            next.first == delim ||
+            next.first == '\n')
+        {
+                break;
+        }
+
+        buffer.push_back( in->read_byte().first );
     }
 
-    in->get();
+    in->read_byte();  // read delimiter
 
     if (delim == ' ')
     {
-        while (in->peek() == ' ') in->get();
+        while (in->peek_byte().first == ' ') in->read_byte();
     }
 }
 

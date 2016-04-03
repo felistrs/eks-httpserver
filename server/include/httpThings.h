@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/buffer.h"
+#include "utils/dataBuffer.h"
 
 
 namespace server {
@@ -35,7 +35,7 @@ public:
 
     void change_status(unsigned status_code);
 
-    Buffer Generate();
+    DataBuffer Generate();
 
 public:
     void set_text(std::string text) { _text = text; }

@@ -5,7 +5,7 @@
 
 #include "socket/socketTypes.h"
 
-#include "utils/buffer.h"
+#include "utils/dataBuffer.h"
 
 
 namespace server { namespace sock {
@@ -22,8 +22,8 @@ void ObtainIdleConnections(
         std::vector<connection_handler> *write_out,
         std::vector<connection_handler> *exception_out);
 
-void SendBuffer(connection_handler sock, Buffer* buffer);
-Buffer RecvBuffer(connection_handler sock);
+void SendBuffer(connection_handler sock, DataBuffer* buffer);
+DataBuffer RecvBuffer(connection_handler sock);
 
 
 } }

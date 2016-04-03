@@ -25,7 +25,7 @@ Server::~Server()
 
 void Server::StartListening()
 {
-    _main_sock = sock::CreateSocketForServer(_port);
+    _main_sock = sock::CreateConnectionForServer(_port);
 
     sock::StartListening(_main_sock, max_connections());
 
@@ -52,7 +52,7 @@ void Server::Start()
         std::vector<connection_handler> conn_read;
         std::vector<connection_handler> conn { _main_sock };
 
-        sock::ObtainIdleSockets(conn, &conn_read, nullptr, nullptr);
+        sock::ObtainIdleConnections(conn, &conn_read, nullptr, nullptr);
 
         if (conn_read.size() && conn_read[0] == _main_sock)  // TODO ???
         {
@@ -86,7 +86,7 @@ void Server::Stop()
     if (_is_running)
     {
         StopCommunication();
-        sock::CloseSocket(_main_sock);
+        sock::CloseConnection(_main_sock);
         _main_sock = 0;
         _is_running = false;
     }
@@ -114,7 +114,7 @@ void Server::OnCommunication()
             std::vector<connection_handler> conn_read, conn_write, conn_except;
             std::vector<connection_handler> sock_conn = _comm_connections;
 
-            sock::ObtainIdleSockets(sock_conn, &conn_read, &conn_write, &conn_except);
+            sock::ObtainIdleConnections(sock_conn, &conn_read, &conn_write, &conn_except);
 
             for (auto conn_handler : conn_read)
             {
@@ -156,7 +156,7 @@ void Server::CloseAllConnections()
 {
     for (auto conn_handler : _comm_connections)
     {
-        sock::CloseSocket(conn_handler);
+        sock::CloseConnection(conn_handler);
     }
     _comm_connections.clear();
 }

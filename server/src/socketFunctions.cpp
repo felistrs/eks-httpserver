@@ -8,7 +8,7 @@
 #include "socket/socket.h"
 
 #include "utils/logger.h"
-#include "utils/buffer.h"
+#include "utils/dataBuffer.h"
 
 
 namespace server { namespace sock {
@@ -180,7 +180,7 @@ void CloseConnection(int handler)
     }
 }
 
-void SendBuffer(connection_handler handler, Buffer* buffer)
+void SendBuffer(connection_handler handler, DataBuffer* buffer)
 {
     using namespace std;
 
@@ -209,7 +209,7 @@ void SendBuffer(connection_handler handler, Buffer* buffer)
     }
 }
 
-Buffer RecvBuffer(connection_handler handler)
+DataBuffer RecvBuffer(connection_handler handler)
 {
     using namespace std;
 
@@ -230,10 +230,10 @@ Buffer RecvBuffer(connection_handler handler)
 
         if (read_sz)
         {
-            return Buffer(move(read_buffer), read_sz);
+            return DataBuffer(move(read_buffer), read_sz);
         }
         else {
-            return Buffer();
+            return DataBuffer();
         }
     }
     else {

@@ -32,7 +32,7 @@ void HttpResponse::change_status(unsigned status_code)
     }
 }
 
-Buffer server::HttpResponse::Generate()
+DataBuffer server::HttpResponse::Generate()
 {
     std::string data =
             _protocol + " " +
@@ -42,7 +42,7 @@ Buffer server::HttpResponse::Generate()
     std::vector<char> v;
     std::copy(data.begin(), data.end(), std::back_inserter(v));
     v.push_back(0);
-    return Buffer(std::move(v), v.size());
+    return DataBuffer(std::move(v), v.size());
 }
 
 
