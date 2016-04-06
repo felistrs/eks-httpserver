@@ -3,6 +3,7 @@
 
 #include "ftp_over_http/ftpCommandProcessor.h"
 #include "utils/htmlWrapper.h"
+#include "utils/dateTime.h"
 
 
 namespace server {
@@ -52,6 +53,8 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
 
                 resp.push_header(HttpResponse::Header::ContentType, "text/html");
                 resp.push_header(HttpResponse::Header::ContentLength, std::to_string(content.size()) );
+
+                resp.push_header(HttpResponse::Header::Date, TimeTToString(GMTNow()));
 
                 resp.set_content(content);
             }

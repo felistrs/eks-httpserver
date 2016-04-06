@@ -76,7 +76,6 @@ void HttpServer::OnCommunication(connection_handler handler)
 
         case conn_state::CNeedClose:
             CloseConnection(handler);
-//            assert(false);
             break;
 
         default:
