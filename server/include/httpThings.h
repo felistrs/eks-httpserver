@@ -41,7 +41,6 @@ public:
     };
 
     void change_status(unsigned status_code);
-
     void push_header(Header header, std::string text);
 
     DataBuffer Generate();
@@ -72,8 +71,8 @@ private:
 
 
     std::string _protocol = "HTTP/1.1";
-    unsigned _responce_status = 200;
-    std::string _responce_status_text = "OK";
+    unsigned _response_status = 200;
+    std::string _response_status_text = "OK";
 
     std::map<std::string, std::string> _headers;
     std::string _content;

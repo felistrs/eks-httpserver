@@ -19,7 +19,7 @@ find_package (Threads)
 
 # Http Server Library
 aux_source_directory(./src/ LIB_SRC_LIST)
-add_library(ekshttpserver STATIC ${LIB_SRC_LIST})
+add_library(ekshttpserver STATIC ${LIB_SRC_LIST} include/utils/dateTime.h src/dateTime.cpp)
 
 # example targets
 FILE(GLOB_RECURSE INC_ALL "./include/*.h")

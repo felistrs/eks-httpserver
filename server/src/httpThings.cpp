@@ -9,14 +9,14 @@ namespace server {
 
 void HttpResponse::change_status(unsigned status_code)
 {
-    _responce_status = status_code;
+    _response_status = status_code;
 
     auto it = c_status_string.find(status_code);
     if (it != c_status_string.end()) {
-        _responce_status_text = it->second;
+        _response_status_text = it->second;
     }
     else {
-        _responce_status_text = "Error";
+        _response_status_text = "Error";
         warning("Unknown status : " + std::to_string(status_code));
     }
 }
@@ -26,8 +26,8 @@ DataBuffer server::HttpResponse::Generate()
     // Generate response
     std::string data =
             _protocol + " " +
-            std::to_string(_responce_status) + " " +
-            _responce_status_text + c_new_line;
+            std::to_string(_response_status) + " " +
+            _response_status_text + c_new_line;
 
     for (const auto& header : _headers) {
         data += header.first + ": " + header.second + c_new_line;
