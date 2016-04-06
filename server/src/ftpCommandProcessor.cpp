@@ -23,7 +23,7 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
         // Method
         if (req->request_type != "GET") // Process only GET
         {
-            resp.change_status(HttpResponse::Status::NotImplemented);
+            resp.ChangeStatus(HttpResponse::Status::NotImplemented);
             break;
         }
 
@@ -31,7 +31,7 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
         bool path_ok = _file_storage_reader->TestIfPathExists(req->path);
         if (path_ok)
         {
-            resp.change_status(HttpResponse::Status::OK);
+            resp.ChangeStatus(HttpResponse::Status::OK);
 
             // Is Folder
             if (_file_storage_reader->IsFolder(req->path))
@@ -54,26 +54,28 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
                 resp.push_header(HttpResponse::Header::ContentType, "text/html");
                 resp.push_header(HttpResponse::Header::ContentLength, std::to_string(content.size()) );
 
-                resp.push_header(HttpResponse::Header::Date, TimeTToString(GMTNow()));
-
                 resp.set_content(content);
             }
             // Is File
             else if (_file_storage_reader->IsFile(req->path))  // Is file
             {
                 log("Is file");
+                assert(false);
             }
             // Error
             else {
-                resp.change_status(HttpResponse::Status::ServerError);
+                resp.ChangeStatus(HttpResponse::Status::ServerError);
             }
 
         }
         else {
-            resp.change_status(HttpResponse::Status::NotFound);
+            resp.ChangeStatus(HttpResponse::Status::NotFound);
         }
 
     } while (false);
+
+    // Add "Date:" header
+    resp.push_header(HttpResponse::Header::Date, TimeTToString(GMTNow()));
 
     return resp;
 }

@@ -40,7 +40,7 @@ public:
         ContentLength
     };
 
-    void change_status(unsigned status_code);
+    void ChangeStatus(unsigned status_code);
     void push_header(Header header, std::string text);
 
     DataBuffer Generate();

@@ -2,12 +2,13 @@
 
 #include "httpThings.h"
 #include "utils/logger.h"
+#include "utils/htmlWrapper.h"
 
 
 namespace server {
 
 
-void HttpResponse::change_status(unsigned status_code)
+void HttpResponse::ChangeStatus(unsigned status_code)
 {
     _response_status = status_code;
 
@@ -19,6 +20,16 @@ void HttpResponse::change_status(unsigned status_code)
         _response_status_text = "Error";
         warning("Unknown status : " + std::to_string(status_code));
     }
+
+
+    // Set headers to default
+    HtmlWrapper html;
+    html.push_text( std::to_string(_response_status) + " : " + _response_status_text );
+    std::string content = html.GenerateHtml();
+
+    push_header(HttpResponse::Header::ContentType, "text/html");
+    push_header(HttpResponse::Header::ContentLength, std::to_string(content.size()) );
+    set_content(content);
 }
 
 DataBuffer server::HttpResponse::Generate()
