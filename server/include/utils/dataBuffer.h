@@ -9,7 +9,7 @@ class DataBuffer
 public:
     DataBuffer() {}
     DataBuffer(DataBuffer&& buff);
-    DataBuffer(std::vector<char>&& data, int size);
+    DataBuffer(std::vector<char>&& data, size_t size);
 
     DataBuffer(const DataBuffer&) = delete;
     DataBuffer& operator=(const DataBuffer&) = delete;
@@ -19,13 +19,13 @@ public:
 
 public:
     const std::vector<char>& data() const { return _data; }
-    unsigned size() { return _size; }
+    size_t size() { return _size; }
 
 private:
-    int _size = 0;
+    size_t _size = 0;
     std::vector<char> _data;
 
-    int _position;
+    size_t _position;
 };
 
 

@@ -11,7 +11,7 @@ DataBuffer::DataBuffer(DataBuffer &&buff) :
     _data(std::move(buff._data))
 {}
 
-DataBuffer::DataBuffer(std::vector<char>&& data, int size) :
+DataBuffer::DataBuffer(std::vector<char>&& data, size_t size) :
     _data(data),
     _size(size),
     _position(0)

@@ -1,5 +1,5 @@
 #include <cstring>
-
+#include <algorithm>
 #include <exception>
 #include <iostream> // !!!
 
@@ -8,12 +8,8 @@
 #include "utils/logger.h"
 #include "socket/socket.h"
 
-
 namespace server {
 
-
-Server::Server()
-{}
 
 Server::~Server()
 {
@@ -47,7 +43,7 @@ void Server::Start()
 
     log("Waiting ...");
 
-    while (true)
+    for (;;)
     {
         std::vector<connection_handler> conn_read;
         std::vector<connection_handler> conn { _main_sock };
@@ -159,6 +155,14 @@ void Server::CloseAllConnections()
         sock::CloseConnection(conn_handler);
     }
     _comm_connections.clear();
+}
+
+void Server::CloseConnection(connection_handler conn) {
+    auto it = std::find(_comm_connections.begin(), _comm_connections.end(), conn);
+    if (it != _comm_connections.end())
+        _comm_connections.erase(it);
+
+    sock::CloseConnection(conn);
 }
 
 

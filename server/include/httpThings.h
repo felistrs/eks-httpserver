@@ -45,6 +45,8 @@ public:
 
     DataBuffer Generate();
 
+    bool DoCloseConnection() { return _close_connection_after_first_response; }
+
 public:
     void set_content(std::string text) { _content = text; }
 
@@ -76,6 +78,8 @@ private:
 
     std::map<std::string, std::string> _headers;
     std::string _content;
+
+    bool _close_connection_after_first_response = true;  // TODO: change for file sending
 };
 
 

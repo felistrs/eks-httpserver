@@ -15,7 +15,7 @@ namespace server {
 
 class Server {
 public:
-    Server();
+    Server() {}
     virtual ~Server();
 
 
@@ -37,6 +37,8 @@ public:
 protected:
     const unsigned CListenSleepMS = 50;
     const unsigned CCommunicationSleepMS = 50;
+
+    void CloseConnection(connection_handler conn);
 
 
 private:

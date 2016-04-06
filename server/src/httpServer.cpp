@@ -60,13 +60,23 @@ void HttpServer::OnCommunication(connection_handler handler)
             auto buffer = response.Generate();
             sock::SendBuffer(handler, &buffer);
 
+            if (response.DoCloseConnection()) {
+                descr->state = conn_state::CNeedClose;
+            }
+            else {
+                descr->state = conn_state::CDataSending;
+            }
+
             break;
         }
 
         case conn_state::CDataSending:
+            assert(false);
             break;
 
         case conn_state::CNeedClose:
+            CloseConnection(handler);
+//            assert(false);
             break;
 
         default:

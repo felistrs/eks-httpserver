@@ -24,7 +24,6 @@ public:
     void OnCommunication(connection_handler conn) override;
     void OnDisconnect(connection_handler conn) override;
 
-
 protected:
     enum conn_state {
         CNone = 0,
@@ -43,6 +42,7 @@ private:
             DataBuffer* in,
             std::string& buff,
             char delim = '\n') const;
+
 
     HttpCommandProcessorInterface* _command_processor;
 };
