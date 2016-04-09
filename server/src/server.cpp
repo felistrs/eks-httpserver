@@ -7,6 +7,8 @@
 
 #include "utils/logger.h"
 #include "socket/socket.h"
+#include "thread_things/threadPool.h"
+
 
 namespace server {
 
@@ -28,6 +30,7 @@ void Server::StartListening()
     _is_running = true;
 }
 
+
 void Server::Start()
 {
     using namespace std;
@@ -42,6 +45,9 @@ void Server::Start()
         }, this) );
 
     log("Waiting ...");
+
+    _communication_thread_pool = CreateThreadPool();
+    _communication_thread_pool->Start();
 
     for (;;)
     {

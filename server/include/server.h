@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <thread_things/threadPool.h>
 
 #include "socket/socket.h"
 #include "utils/dataBuffer.h"
@@ -38,8 +39,9 @@ protected:
     const unsigned CListenSleepMS = 50;
     const unsigned CCommunicationSleepMS = 50;
 
-    void CloseConnection(connection_handler conn);
+    virtual std::unique_ptr<ThreadPool> CreateThreadPool() = 0;
 
+    void CloseConnection(connection_handler conn);
 
 private:
     void StartListening();
@@ -62,6 +64,8 @@ private:
     std::vector<connection_handler> _thr_new_connections;
 
     // thread for communication
+    std::unique_ptr<ThreadPool> _communication_thread_pool;
+
     std::unique_ptr<std::thread> _comm_thread;
     bool _thr_stop_server_flag = false;
 

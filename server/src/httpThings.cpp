@@ -7,6 +7,9 @@
 
 namespace server {
 
+HttpResponse::HttpResponse() {
+    ChangeStatus(HttpResponse::Status::OK); // TODO: OK ?
+}
 
 void HttpResponse::ChangeStatus(unsigned status_code)
 {
@@ -20,7 +23,6 @@ void HttpResponse::ChangeStatus(unsigned status_code)
         _response_status_text = "Error";
         warning("Unknown status : " + std::to_string(status_code));
     }
-
 
     // Set headers to default
     HtmlWrapper html;

@@ -166,5 +166,19 @@ void HttpServer::read_chunk(
     }
 }
 
+namespace {
+
+bool HttpServerTaskRunner(ThreadTask* task)
+{
+    log("HttpServerTaskRunner task : " + std::to_string(task->id) );
+    return true;
+}
+
+}
+
+std::unique_ptr<ThreadPool> HttpServer::CreateThreadPool() {
+    return std::unique_ptr<ThreadPool>(new ThreadPool(HttpServerTaskRunner));
+}
+
 
 }

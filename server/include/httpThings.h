@@ -23,6 +23,8 @@ struct HttpRequest {
 
 class HttpResponse {
 public:
+    HttpResponse();
+
     enum Status {
         Continue = 100,
         OK = 200,

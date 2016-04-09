@@ -32,6 +32,7 @@ protected:
         CNeedClose,
     };
 
+    virtual std::unique_ptr<ThreadPool> CreateThreadPool();
 
 private:
     DataBuffer GetBuffer(connection_handler conn);
