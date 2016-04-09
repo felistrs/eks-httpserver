@@ -28,4 +28,9 @@ private:
 };
 
 
+class ThreadTask; // TODO: move to other file ?
+template
+class QueueSafe<ThreadTask*>;
+
+
 #endif //THREAD_THINGS__QUEUESAFE_H

@@ -38,6 +38,9 @@ public:
 
     void JoinAllThreads();
 
+protected:
+    static void ThreadWorkerFunction(ThreadPool::WorkerContext *context);
+
 private:
     std::vector<std::thread> _threads;
     std::vector<WorkerContext> _thread_func_context;

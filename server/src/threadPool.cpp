@@ -5,6 +5,7 @@
 #include <iostream>
 #include <utils/logger.h>
 
+#include "thread_things/queueSafe.h"
 #include "thread_things/threadPool.h"
 
 
@@ -13,49 +14,44 @@ ThreadPool::ThreadPool(TaskRunner task_runner_func) :
 {}
 
 
-namespace {
-    void thread_func(void *p)  // TODO: logs !!!
+void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
+{
+    log("Thread start : " + std::to_string(context->id) );
+
+    ThreadTask* task = nullptr;
+
+    while (!context->join_flag)
     {
-        ThreadPool::WorkerContext* context = (ThreadPool::WorkerContext*)(p);
-
-        log("Thread start : " + std::to_string(context->id) );
-
-        ThreadTask* task = nullptr;
-
-        while (!context->join_flag)
-        {
-            if (task == nullptr) {
-                context->tasks_queue->Pop_WithWait(task);
-                log("Thread " + std::to_string(context->id) + " picked task : " + std::to_string(task->id) );
-            }
-
-            context->task_runner(task);
-            if (task->completed)
-            {
-                context->completed_queue->Push(task);
-                task = nullptr;
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO: 50 ms ?
+        if (task == nullptr) {
+            context->tasks_queue->Pop_WithWait(task);
+            log("Thread " + std::to_string(context->id) + " picked task : " + std::to_string(task->id) );
         }
 
-        if (task != nullptr)
+        context->task_runner(task);
+        if (task->completed)
         {
-            log("On thread " + std::to_string(context->id) + " task wasn\'t completed : " + std::to_string(task->id) );
-            context->tasks_queue->Push(task);
+            context->completed_queue->Push(task);
+            task = nullptr;
         }
 
-        log("Thread finish : " + std::to_string(context->id) );
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO: 50 ms ?
     }
-}
+
+    if (task != nullptr)
+    {
+        log("On thread " + std::to_string(context->id) + " task wasn\'t completed : " + std::to_string(task->id) );
+        context->tasks_queue->Push(task);
+    }
+
+    log("Thread finish : " + std::to_string(context->id) );
+};
 
 
 void ThreadPool::Start(unsigned thread_count)
 {
     _thread_func_context = std::vector<WorkerContext>(thread_count);
 
-    for (unsigned i = 0; i < thread_count; ++i)
-    {
+    for (unsigned i = 0; i < thread_count; ++i) {
         // Context
         _thread_func_context[i].id = i;
         _thread_func_context[i].tasks_queue = &_tasks_queue;
@@ -64,7 +60,7 @@ void ThreadPool::Start(unsigned thread_count)
 
         // Start thread
         _threads.push_back(
-                std::thread(thread_func, _thread_func_context.data() + i)
+                std::thread(ThreadWorkerFunction, _thread_func_context.data() + i)
         );
     }
 }
