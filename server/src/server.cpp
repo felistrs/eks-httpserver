@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <algorithm>
 #include <exception>
@@ -38,76 +39,25 @@ void Server::Start()
     StartListening();
     log( "Listening... ." );
 
-    // Starts new thread for communications
-    _comm_thread = unique_ptr<thread>(
-        new thread([](Server *server){
-            server->OnCommunication();
-        }, this) );
-
-    log("Waiting ...");
-
     _communication_thread_pool = CreateThreadPool();
     _communication_thread_pool->Start();
+    log("Waiting ...");
 
     for (;;)
     {
+        // Accept new connections
         std::vector<connection_handler> conn_read;
         std::vector<connection_handler> conn { _main_sock };
 
         sock::ObtainIdleConnections(conn, &conn_read, nullptr, nullptr);
 
-        if (conn_read.size() && conn_read[0] == _main_sock)  // TODO ???
+        if (conn_read.size() && conn_read[0] == _main_sock)
         {
-            auto new_sock = sock::AcceptNewConnection(_main_sock);
-            log("Accepted : "+to_string(new_sock));
+            auto new_connection = sock::AcceptNewConnection(_main_sock);
+            log("Accepted : "+to_string(new_connection));
 
-            {
-                std::unique_lock<std::mutex> lock(_lock_connections);
-                _thr_new_connections.push_back(new_sock);
-            }
-        }
-
-        // TODO: remove next
-//        this_thread::sleep_for(chrono::seconds(5));
-//        log("Close ... ");
-//        _thr_stop_server_flag = true;
-//        break;
-
-        // sleep
-        this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
-    }
-
-    if(_comm_thread)
-    {
-        _comm_thread->join();
-    }
-}
-
-void Server::Stop()
-{
-    if (_is_running)
-    {
-        StopCommunication();
-        sock::CloseConnection(_main_sock);
-        _main_sock = 0;
-        _is_running = false;
-    }
-}
-
-void Server::OnCommunication()
-{
-    using namespace std;
-
-    while (true) {
-        // Test new connections
-        {
-            unique_lock<mutex> lock(_lock_connections);
-
-            for (auto connection_handler : _thr_new_connections) {
-                _comm_connections.push_back(connection_handler);
-                OnConnect(_comm_connections.back());
-            }
-            _thr_new_connections.clear();
+            _comm_connections.push_back(new_connection);
+            OnConnect(_comm_connections.back());
         }
 
         // Communicate
@@ -125,15 +75,22 @@ void Server::OnCommunication()
             }
         }
 
-        // test need connection close
-        if (_thr_stop_server_flag) {
-            log("DoCommunication closing.");
-            CloseAllConnections();
-            break;
-        }
-
         // sleep
-        this_thread::sleep_for(chrono::milliseconds(CCommunicationSleepMS));
+        this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
+
+//        break; // !!!
+    }
+
+}
+
+void Server::Stop()
+{
+    if (_is_running)
+    {
+        StopCommunication();
+        sock::CloseConnection(_main_sock);
+        _main_sock = 0;
+        _is_running = false;
     }
 }
 
@@ -142,16 +99,7 @@ void Server::OnCommunication(connection_handler conn)
 
 void Server::StopCommunication()
 {
-    if (_comm_connections.size() && !_comm_thread) {
-        warning("Connections are opened, but communication thread is closed.");
-    }
-
-    if (_comm_thread)
-    {
-        _thr_stop_server_flag = true;
-        _comm_thread->join();
-        _comm_thread = nullptr;
-    }
+    assert(false);
 }
 
 void Server::CloseAllConnections()

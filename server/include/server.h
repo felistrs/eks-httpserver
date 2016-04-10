@@ -46,7 +46,6 @@ protected:
 private:
     void StartListening();
 
-    void OnCommunication();
     void StopCommunication();
     void CloseAllConnections();
 
@@ -59,15 +58,8 @@ private:
     // socket
     connection_handler _main_sock;
 
-    //
-    std::mutex _lock_connections;
-    std::vector<connection_handler> _thr_new_connections;
-
     // thread for communication
     std::unique_ptr<ThreadPool> _communication_thread_pool;
-
-    std::unique_ptr<std::thread> _comm_thread;
-    bool _thr_stop_server_flag = false;
 
     std::vector<connection_handler> _comm_connections;
 };

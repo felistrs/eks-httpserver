@@ -41,7 +41,7 @@ void HttpServer::OnCommunication(connection_handler handler)
     {
         switch (descr->state) {
         case conn_state::CNone:
-            warning("(HttpServer::OnCommunication) : " +
+            warning("(HttpServer::DoCommunication) : " +
                     to_string(descr->sock_handler) +
                     " connection not initialized.");
             break;
@@ -79,12 +79,12 @@ void HttpServer::OnCommunication(connection_handler handler)
             break;
 
         default:
-            warning("(HttpServer::OnCommunication) not implemented state");
+            warning("(HttpServer::DoCommunication) not implemented state");
             break;
         }
     }
     else {
-        throw ConnectionException("HttpServer::OnCommunication : invalid habdler");
+        throw ConnectionException("HttpServer::DoCommunication : invalid habdler");
     }
 }
 
@@ -96,7 +96,7 @@ DataBuffer HttpServer::GetBuffer(connection_handler conn)
     auto buff = sock::RecvBuffer(conn);
 
     std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
-    debug_hex(buff.data());
+//    debug_hex(buff.data());
     debug_string(buff.data());
     std::cout << std::endl;
 
@@ -124,7 +124,7 @@ HttpRequest HttpServer::ReadRequest(DataBuffer* buff)
 
     while (!line.empty() && line != "\r")
     {
-        debug_hex(line);
+//        debug_hex(line);
         debug_string(line);
 
         read_chunk(buff, line);
