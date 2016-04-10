@@ -9,7 +9,9 @@
 
 #include "socket/socket.h"
 #include "thread_things/threadPool.h"
-#include "utils/dataBuffer.h"
+
+
+class DataBuffer;
 
 
 namespace server {
@@ -20,13 +22,11 @@ public:
     Server() {}
     virtual ~Server();
 
-
     void Start();
     void Stop();
 
-    virtual void OnConnect(connection_handler conn) = 0;
-    virtual void OnCommunication(connection_handler conn) = 0;
-    virtual void OnDisconnect(connection_handler conn) = 0;
+    static DataBuffer ReadBuffer(connection_handler conn);
+
 
 public:
     void set_listening_port(int port) { _port = port; }
@@ -40,20 +40,26 @@ protected:
     const unsigned CListenSleepMS = 50;
     const unsigned CCommunicationSleepMS = 50;
 
+
+    virtual void OnConnect(connection_handler conn) = 0;
+    virtual void OnCommunication(connection_handler conn) = 0;
+    virtual void OnDisconnect(connection_handler conn) = 0;
+
     virtual std::unique_ptr<ThreadPool> CreateThreadPool() = 0;
 
-    void CloseConnection(connection_handler conn);
+    void CloseConnection(connection_handler handler);
 
 
     std::list<std::unique_ptr<ThreadTask>> _http_tasks;
     std::list<std::unique_ptr<ThreadTask>> _http_tasks_in_process;
-    std::list<std::unique_ptr<ThreadTask>> _http_tasks_done;
 
 private:
     void StartListening();
 
     void StopCommunication();
     void CloseAllConnections();
+
+    void EraseCompletedTasks();
 
 
     int _port;

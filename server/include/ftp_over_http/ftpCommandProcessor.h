@@ -1,25 +1,29 @@
 #ifndef FTP_OVER_HTTP__FTP_COMMAND_PROCESSOR_H
 #define FTP_OVER_HTTP__FTP_COMMAND_PROCESSOR_H
 
-#include <memory>
-
 #include "httpCommandProcessorInterface.h"
-#include "utils/fileStorageReader.h"
+
+
+class FileStorageReader;
 
 
 namespace server {
 
 
+class HttpRequest;
+class HttpResponse;
+
+
 class FtpCommandProcessor : public HttpCommandProcessorInterface
 {
 public:
-    FtpCommandProcessor(FileStorageReader* fsr);
+    FtpCommandProcessor(FileStorageReader* file_storage_reader);
     virtual ~FtpCommandProcessor() {}
 
     HttpResponse ProcessRequest(HttpRequest* req) override;
 
 private:
-    FileStorageReader* _file_storage_reader;
+    FileStorageReader *_file_storage_reader;
 };
 
 

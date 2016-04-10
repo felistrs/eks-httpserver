@@ -2,14 +2,18 @@
 #include <utils/logger.h>
 
 #include "ftp_over_http/ftpCommandProcessor.h"
+
+#include "httpThings.h"
+#include "utils/fileStorageReader.h"
 #include "utils/htmlWrapper.h"
 #include "utils/dateTime.h"
 
 
 namespace server {
 
-FtpCommandProcessor::FtpCommandProcessor(FileStorageReader* fsr) :
-    _file_storage_reader(fsr)
+
+FtpCommandProcessor::FtpCommandProcessor(FileStorageReader* file_storage_reader) :
+    _file_storage_reader(file_storage_reader)
 {}
 
 HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)

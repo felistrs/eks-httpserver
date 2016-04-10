@@ -6,15 +6,14 @@
 #define THREAD_THINGS__QUEUESAFE_H
 
 #include <queue>
-#include <thread>
 #include <mutex>
 #include <condition_variable>
+
 
 
 template <class T>
 class QueueSafe {
 public:
-//    T Pop_WithWait();
     void Pop_WithWait(T& item);
     std::queue<T> PopAll();
 

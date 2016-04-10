@@ -1,14 +1,12 @@
 #include <cassert>
 #include <cstring>
 #include <algorithm>
-#include <exception>
 #include <iostream> // !!!
 
 #include "server.h"
 
 #include "utils/logger.h"
-#include "socket/socket.h"
-#include "thread_things/threadPool.h"
+#include "utils/dataBuffer.h"
 
 
 namespace server {
@@ -83,6 +81,8 @@ void Server::Start()
 
             _http_tasks_in_process.splice(
                     _http_tasks_in_process.begin(), _http_tasks);
+
+            EraseCompletedTasks();
         }
 
         // sleep
@@ -121,12 +121,48 @@ void Server::CloseAllConnections()
     _comm_connections.clear();
 }
 
-void Server::CloseConnection(connection_handler conn) {
-    auto it = std::find(_comm_connections.begin(), _comm_connections.end(), conn);
+void Server::CloseConnection(connection_handler handler) {
+    auto it = std::find(_comm_connections.begin(), _comm_connections.end(), handler);
     if (it != _comm_connections.end())
         _comm_connections.erase(it);
 
-    sock::CloseConnection(conn);
+    try {
+        sock::CloseConnection(handler);
+    }
+    catch (...) {
+        error("(Server::CloseConnection) commnumication not closed : " +
+              std::to_string(handler));
+    }
+}
+
+DataBuffer Server::ReadBuffer(connection_handler conn) {
+    auto buff = sock::RecvBuffer(conn);
+
+    std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
+//    debug_hex(buff.data());
+    debug_string(buff.data());
+    std::cout << std::endl;
+
+    return buff;
+}
+
+void Server::EraseCompletedTasks() {
+    std::queue<ThreadTask*> completed_tasks = _communication_thread_pool->PopCompletedTasks();
+
+    while (completed_tasks.size())
+    {
+        ThreadTask* task = completed_tasks.front();
+        completed_tasks.pop();
+
+        for (auto it = _http_tasks_in_process.begin(); it != _http_tasks_in_process.end(); ++it)
+        {
+            if (it->get() == task)
+            {
+                _http_tasks_in_process.erase(it);
+                break;
+            }
+        }
+    }
 }
 
 

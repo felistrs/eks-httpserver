@@ -1,17 +1,9 @@
+#include <queue>
+#include <condition_variable>
+#include <thread>
+
 #include "thread_things/queueSafe.h"
 
-
-//template <class T>
-//T QueueSafe::Pop_WithWait() {
-//    std::unique_lock<std::mutex> ulock(_lock);
-//    while (_queue.empty())
-//    {
-//        _cond_var.wait(ulock);
-//    }
-//    auto item = _queue.front();
-//    _queue.pop();
-//    return item;
-//}
 
 template <class T>
 void QueueSafe<T>::Pop_WithWait(T &item) {

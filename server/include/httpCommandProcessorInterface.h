@@ -3,10 +3,12 @@
 
 #include <memory>
 
-#include "httpThings.h"
-
 
 namespace server {
+
+
+class HttpResponse;
+class HttpRequest;
 
 
 class HttpCommandProcessorInterface

@@ -5,7 +5,8 @@
 
 #include "socket/socketTypes.h"
 
-#include "utils/dataBuffer.h"
+
+class DataBuffer;
 
 
 namespace server { namespace sock {

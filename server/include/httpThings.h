@@ -8,7 +8,9 @@
 
 #include "socket/socket.h"
 #include "thread_things/threadTask.h"
-#include "utils/dataBuffer.h"
+
+
+class DataBuffer;
 
 
 namespace server {
@@ -26,6 +28,14 @@ struct HttpThreadTask : public ThreadTask {
     connection_handler connection = CONNECTION_HANDLER_INVALID;
 
     HttpCommandProcessorInterface* command_processor = nullptr;
+};
+
+
+enum HttpConnectionState {
+    CNone = 0,
+    CNeedReqResp,
+    CDataSending,
+    CNeedClose,
 };
 
 

@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "utils/dataProvider.h"
+
+class DataProvider;
 
 
 class FileStorageReader

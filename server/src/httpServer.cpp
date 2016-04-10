@@ -1,15 +1,15 @@
 #include <cassert>
 #include <cctype>
 #include <cstring>
-
 #include <iostream>
 #include <sstream>
 #include <vector>
 
 #include "httpServer.h"
 
+#include "httpCommandProcessorInterface.h"
+#include "utils/dataBuffer.h"
 #include "utils/logger.h"
-#include "socket/socket.h"
 
 
 namespace server {
@@ -24,7 +24,7 @@ void HttpServer::OnConnect(connection_handler handler)
     auto descr = GetConnectionDescriptor(handler);
     if (descr)
     {
-        descr->state = conn_state::CNeedReqResp;
+        descr->state = HttpConnectionState::CNeedReqResp;
     }
     else {
         throw ConnectionException("HttpServer::OnConnect : invalid handler");
@@ -38,14 +38,8 @@ void HttpServer::OnCommunication(connection_handler handler)
     if (descr)
     {
         // Close connection
-        if (descr->state == conn_state::CNeedClose) {
-            try {
-                CloseConnection(handler);
-            }
-            catch (...) {
-                error("HttpServer::OnCommunication commnumication not closed : " +
-                        std::to_string(handler));
-            }
+        if (descr->state == HttpConnectionState::CNeedClose) {
+            CloseConnection(handler);
         }
         else {
             // Push task to thread pool
@@ -73,43 +67,30 @@ void HttpServer::OnCommunication(connection_handler handler)
 void HttpServer::OnDisconnect(connection_handler conn)
 {}
 
-DataBuffer HttpServer::GetBuffer(connection_handler conn)
-{
-    auto buff = sock::RecvBuffer(conn);
-
-    std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
-//    debug_hex(buff.data());
-    debug_string(buff.data());
-    std::cout << std::endl;
-
-    return buff;
-}
-
 HttpRequest HttpServer::ReadRequest(DataBuffer* buff)
 {
     using namespace std;
 
     HttpRequest package;
 
-    read_chunk(buff, package.request_type, ' ');
+    ReadDataChunk(buff, package.request_type, ' ');
     debug_string(package.request_type);
 
-    read_chunk(buff, package.path, ' ');
+    ReadDataChunk(buff, package.path, ' ');
     debug_string(package.path);
 
-    read_chunk(buff, package.protocol);
+    ReadDataChunk(buff, package.protocol);
     debug_string(package.protocol);
 
 
     string line;
-    read_chunk(buff, line);
+    ReadDataChunk(buff, line);
 
     while (!line.empty() && line != "\r")
     {
-//        debug_hex(line);
         debug_string(line);
 
-        read_chunk(buff, line);
+        ReadDataChunk(buff, line);
 
         package.other.push_back(line); // TODO: parse for more functionality
     }
@@ -117,9 +98,9 @@ HttpRequest HttpServer::ReadRequest(DataBuffer* buff)
     return package;
 }
 
-void HttpServer::read_chunk(
-        DataBuffer* in,
-        std::string& buffer,
+void HttpServer::ReadDataChunk(
+        DataBuffer *in,
+        std::string &buffer,
         char delim)
 {
     using namespace std;
@@ -156,7 +137,7 @@ bool HttpServerTaskDoResponse(HttpThreadTask* task)
     bool task_is_done = false;
 
     // Read request
-    DataBuffer buff = HttpServer::GetBuffer(task->connection);
+    DataBuffer buff = Server::ReadBuffer(task->connection);
     HttpRequest request = HttpServer::ReadRequest(&buff);
 
     //
@@ -171,10 +152,10 @@ bool HttpServerTaskDoResponse(HttpThreadTask* task)
     auto descr = GetConnectionDescriptor(task->connection);
 
     if (response.DoCloseConnection()) {
-        descr->state = HttpServer::conn_state::CNeedClose;
+        descr->state = HttpConnectionState::CNeedClose;
     }
     else {
-        descr->state = HttpServer::conn_state::CDataSending;
+        descr->state = HttpConnectionState::CDataSending;
     }
 
     task->completed = true;
@@ -242,17 +223,17 @@ HttpThreadTask::Type HttpServer::ReceiveTaskTypeForConnection(connection_handler
     if (descr)
     {
         switch (descr->state) {
-            case conn_state::CNone: break;
+            case HttpConnectionState::CNone: break;
 
-            case conn_state::CNeedReqResp:
+            case HttpConnectionState::CNeedReqResp:
                 task_type = HttpThreadTask::Type::EDoResponse;
                 break;
 
-            case conn_state::CDataSending:
+            case HttpConnectionState::CDataSending:
                 task_type = HttpThreadTask::Type::ESendData;
                 break;
 
-            case conn_state::CNeedClose:
+            case HttpConnectionState::CNeedClose:
                 warning("(HttpServer::ReceiveTaskTypeForConnection) connection closes on main thread");
                 break;
 
