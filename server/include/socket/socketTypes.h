@@ -14,7 +14,7 @@ using connection_handler = int;
 const connection_handler CONNECTION_HANDLER_INVALID = -1;
 
 
-struct connection_descriptor_ {
+struct connection_descriptor {
     enum class Type { CNone, CSocket };
 
     Type type = Type::CNone;
@@ -50,11 +50,11 @@ public:
 };
 
 
-std::pair<connection_handler, connection_descriptor_*> generateConnectionHandler();
+std::pair<connection_handler, connection_descriptor*> generateConnectionHandler();
 void releaseConnectionHandler(connection_handler handler);
 bool testIfAllHandlersReleased();
 
-connection_descriptor_* GetConnectionDescriptor(connection_handler handler);
+connection_descriptor* GetConnectionDescriptor(connection_handler handler);
 
 
 }

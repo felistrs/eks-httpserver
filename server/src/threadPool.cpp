@@ -28,6 +28,7 @@ void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
         }
 
         context->task_runner(task);
+
         if (task->completed)
         {
             context->completed_queue->Push(task);

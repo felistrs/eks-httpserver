@@ -7,20 +7,20 @@
 namespace server {
 
 
-static std::map<connection_handler, connection_descriptor_> g_connection_descriptors =
-        std::map<connection_handler, connection_descriptor_>();
+static std::map<connection_handler, connection_descriptor> g_connection_descriptors =
+        std::map<connection_handler, connection_descriptor>();
 
 static connection_handler g_handler_counter = 0;
 static std::mutex g_lock_connection_descriptors;
 
 
-std::pair<connection_handler, connection_descriptor_*> generateConnectionHandler()
+std::pair<connection_handler, connection_descriptor*> generateConnectionHandler()
 {
     std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
 
     bool found = false;
     connection_handler handler = CONNECTION_HANDLER_INVALID;
-    connection_descriptor_* descr = nullptr;
+    connection_descriptor* descr = nullptr;
 
     // Search for empty slot
     connection_handler h_start = g_handler_counter;
@@ -47,7 +47,7 @@ std::pair<connection_handler, connection_descriptor_*> generateConnectionHandler
     if (found )
     {
         handler = g_handler_counter;
-        g_connection_descriptors[handler] = connection_descriptor_();
+        g_connection_descriptors[handler] = connection_descriptor();
         descr = &g_connection_descriptors[handler];
     }
 
@@ -73,7 +73,7 @@ bool testIfAllHandlersReleased()
     return g_connection_descriptors.empty();
 }
 
-connection_descriptor_* GetConnectionDescriptor(connection_handler handler)
+connection_descriptor* GetConnectionDescriptor(connection_handler handler)
 {
     std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
 

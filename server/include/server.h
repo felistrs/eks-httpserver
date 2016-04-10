@@ -1,13 +1,14 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <list>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
-#include <thread_things/threadPool.h>
 
 #include "socket/socket.h"
+#include "thread_things/threadPool.h"
 #include "utils/dataBuffer.h"
 
 
@@ -43,6 +44,11 @@ protected:
 
     void CloseConnection(connection_handler conn);
 
+
+    std::list<std::unique_ptr<ThreadTask>> _http_tasks;
+    std::list<std::unique_ptr<ThreadTask>> _http_tasks_in_process;
+    std::list<std::unique_ptr<ThreadTask>> _http_tasks_done;
+
 private:
     void StartListening();
 
@@ -55,13 +61,13 @@ private:
     bool _is_running = false;
     int _max_connections = 100;
 
-    // socket
+    // connections
     connection_handler _main_sock;
+    std::vector<connection_handler> _comm_connections;
 
     // thread for communication
     std::unique_ptr<ThreadPool> _communication_thread_pool;
 
-    std::vector<connection_handler> _comm_connections;
 };
 
 

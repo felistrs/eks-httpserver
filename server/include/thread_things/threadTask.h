@@ -8,7 +8,9 @@
 
 struct ThreadTask
 {
-    long id;
+    virtual ~ThreadTask() {}
+
+    long id = 0;
     bool completed = false;
 };
 

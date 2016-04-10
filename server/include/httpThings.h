@@ -6,10 +6,27 @@
 #include <string>
 #include <vector>
 
+#include "socket/socket.h"
+#include "thread_things/threadTask.h"
 #include "utils/dataBuffer.h"
 
 
 namespace server {
+
+
+class HttpCommandProcessorInterface;
+
+
+struct HttpThreadTask : public ThreadTask {
+    virtual ~HttpThreadTask() {}
+
+    enum class Type { ENone, EDoResponse, ESendData };
+
+    Type task;
+    connection_handler connection = CONNECTION_HANDLER_INVALID;
+
+    HttpCommandProcessorInterface* command_processor = nullptr;
+};
 
 
 struct HttpRequest {

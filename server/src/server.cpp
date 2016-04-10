@@ -75,6 +75,16 @@ void Server::Start()
             }
         }
 
+        // Task for thread pool
+        {
+            for (auto& task : _http_tasks) {
+                _communication_thread_pool->PushTask(task.get());
+            }
+
+            _http_tasks_in_process.splice(
+                    _http_tasks_in_process.begin(), _http_tasks);
+        }
+
         // sleep
         this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
 
