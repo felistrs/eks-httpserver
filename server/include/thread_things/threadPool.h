@@ -34,7 +34,7 @@ public:
 
     void Start(unsigned thread_count = std::thread::hardware_concurrency() - 1);
 
-    void PushTask(ThreadTask* task);
+    void ScheduleExecutionTask(ThreadTask *task);
     std::queue<ThreadTask*> PopCompletedTasks();
 
     void JoinAllThreads();

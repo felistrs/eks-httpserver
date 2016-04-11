@@ -43,40 +43,46 @@ void Server::Start()
 
     for (;;)
     {
-        // Accept new connections
-        std::vector<connection_handler> conn_read;
-        std::vector<connection_handler> conn { _main_sock };
+        // Test for incoming events
+        std::vector<connection_handler> conn_read, conn_write, conn_except;
+        std::vector<connection_handler> sock_conn = _comm_connections;
+        sock_conn.push_back(_main_sock);
 
-        sock::ObtainIdleConnections(conn, &conn_read, nullptr, nullptr);
+        sock::ObtainIdleConnections(sock_conn, &conn_read, &conn_write, &conn_except);
 
-        if (conn_read.size() && conn_read[0] == _main_sock)
+        // Test connections for read
+        for (auto conn_handler : conn_read)
         {
-            auto new_connection = sock::AcceptNewConnection(_main_sock);
-            log("Accepted : "+to_string(new_connection));
-
-            _comm_connections.push_back(new_connection);
-            OnConnect(_comm_connections.back());
-        }
-
-        // Communicate
-        if (_comm_connections.size())
-        {
-            std::vector<connection_handler> conn_read, conn_write, conn_except;
-            std::vector<connection_handler> sock_conn = _comm_connections;
-
-            sock::ObtainIdleConnections(sock_conn, &conn_read, &conn_write, &conn_except);
-
-            for (auto conn_handler : conn_read)
+            if (conn_handler == _main_sock)
             {
+                auto new_connection = sock::AcceptNewConnection(_main_sock);
+                log("Accepted : "+to_string(new_connection));
+
+                _comm_connections.push_back(new_connection);
+                OnConnect(_comm_connections.back());
+            }
+            else {
                 log(to_string(conn_handler) + " need communication");
                 OnCommunication(conn_handler);
             }
         }
 
+        // Test connections for write
+        for (auto conn_handler : conn_write)
+        {
+            error("Need write : " + to_string(conn_handler));
+        }
+
+        // Test connections for exceptions
+        for (auto conn_handler : conn_except)
+        {
+            error("Need write : " + to_string(conn_handler));
+        }
+
         // Task for thread pool
         {
             for (auto& task : _http_tasks) {
-                _communication_thread_pool->PushTask(task.get());
+                _communication_thread_pool->ScheduleExecutionTask(task.get());
             }
 
             _http_tasks_in_process.splice(

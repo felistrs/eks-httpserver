@@ -66,7 +66,7 @@ void ThreadPool::Start(unsigned thread_count)
     }
 }
 
-void ThreadPool::PushTask(ThreadTask* task)
+void ThreadPool::ScheduleExecutionTask(ThreadTask *task)
 {
     _tasks_queue.Push(task);
 }
