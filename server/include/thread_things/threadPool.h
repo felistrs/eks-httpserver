@@ -11,31 +11,25 @@
 
 #include "thread_things/queueSafe.h"
 #include "thread_things/threadTask.h"
+#include "thread_things/runnable.h"
 
 
 
 class ThreadPool {
 public:
-    using TaskRunner = std::function<void(ThreadTask*)>;
-
     struct WorkerContext
     {
         int id = -1;
-        QueueSafe<ThreadTask*> *tasks_queue = nullptr;
-        QueueSafe<ThreadTask*> *completed_queue = nullptr;
+        QueueSafe<ThreadTask> *tasks_queue = nullptr;
         bool join_flag = false;
-        TaskRunner task_runner;
     };
 
 
-    ThreadPool(TaskRunner task_runner_func);
     ~ThreadPool();
-
 
     void Start(unsigned thread_count = std::thread::hardware_concurrency() - 1);
 
-    void ScheduleExecutionTask(ThreadTask *task);
-    std::queue<ThreadTask*> PopCompletedTasks();
+    void ScheduleExecutionTask(Runnable *runnable, ThreadTask::RunnableDoneCallback done_callback);
 
     void JoinAllThreads();
 
@@ -46,10 +40,7 @@ private:
     std::vector<std::thread> _threads;
     std::vector<WorkerContext> _thread_func_context;
 
-    QueueSafe<ThreadTask*> _tasks_queue;
-    QueueSafe<ThreadTask*> _completed_tasks;
-
-    TaskRunner _task_runner;
+    QueueSafe<ThreadTask> _runnable_queue;
 };
 
 

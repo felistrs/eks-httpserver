@@ -82,13 +82,16 @@ void Server::Start()
         // Task for thread pool
         {
             for (auto& task : _http_tasks) {
-                _communication_thread_pool->ScheduleExecutionTask(task.get());
+                _communication_thread_pool->ScheduleExecutionTask(task.get(), [](Runnable* runnable) {
+                    log("TASK IS DONE !!!"); // + std::to_string(reinterpret_cast<int>(runnable)));
+                    // TODO: identify
+                });
             }
 
             _http_tasks_in_process.splice(
                     _http_tasks_in_process.begin(), _http_tasks);
 
-            EraseCompletedTasks();
+//            EraseCompletedTasks();
         }
 
         // sleep
@@ -152,24 +155,24 @@ DataBuffer Server::ReadBuffer(connection_handler conn) {
     return buff;
 }
 
-void Server::EraseCompletedTasks() {
-    std::queue<ThreadTask*> completed_tasks = _communication_thread_pool->PopCompletedTasks();
-
-    while (completed_tasks.size())
-    {
-        ThreadTask* task = completed_tasks.front();
-        completed_tasks.pop();
-
-        for (auto it = _http_tasks_in_process.begin(); it != _http_tasks_in_process.end(); ++it)
-        {
-            if (it->get() == task)
-            {
-                _http_tasks_in_process.erase(it);
-                break;
-            }
-        }
-    }
-}
+//void Server::EraseCompletedTasks() {
+//    std::queue<ThreadTask*> completed_tasks = _communication_thread_pool->PopCompletedTasks();
+//
+//    while (completed_tasks.size())
+//    {
+//        ThreadTask* task = completed_tasks.front();
+//        completed_tasks.pop();
+//
+//        for (auto it = _http_tasks_in_process.begin(); it != _http_tasks_in_process.end(); ++it)
+//        {
+//            if (it->get() == task)
+//            {
+//                _http_tasks_in_process.erase(it);
+//                break;
+//            }
+//        }
+//    }
+//}
 
 
 }

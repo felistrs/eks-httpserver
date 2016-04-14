@@ -9,6 +9,7 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "thread_things/threadTask.h"
 
 
 template <class T>
@@ -26,10 +27,7 @@ private:
     std::condition_variable _cond_var;
 };
 
-
-class ThreadTask; // TODO: move to other file ?
-template
-class QueueSafe<ThreadTask*>;
+template class QueueSafe<ThreadTask>;
 
 
 #endif //THREAD_THINGS__QUEUESAFE_H

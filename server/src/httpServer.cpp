@@ -8,6 +8,7 @@
 #include "httpServer.h"
 
 #include "httpCommandProcessorInterface.h"
+#include "httpWorkerRunnables.h"
 #include "utils/dataBuffer.h"
 #include "utils/logger.h"
 
@@ -46,12 +47,13 @@ void HttpServer::OnCommunication(connection_handler handler)
             auto task_type = ReceiveTaskTypeForConnection(handler);
 
             if (task_type != HttpThreadTask::Type::ENone) {
-                std::unique_ptr<HttpThreadTask> task(new HttpThreadTask);
-                task->id = _thread_task_counter++;
-                task->task = task_type;
-                task->connection = handler;
-                task->command_processor = _command_processor;
-                _http_tasks.push_back(std::move(task));
+//                std::unique_ptr<HttpThreadTask> task(new HttpThreadTask);
+//                task->task = task_type;
+//                task->connection = handler;
+//                task->command_processor = _command_processor;
+
+                std::unique_ptr<Runnable> runnable(new HttpServerDoResponseRunnable(handler, _command_processor)); // TODO: other !!! ???
+                _http_tasks.push_back(std::move(runnable));
             }
             else {
                 error("HttpServer::OnCommunication none tasks for " + std::to_string(handler));
@@ -132,86 +134,86 @@ void HttpServer::ReadDataChunk(
 
 namespace {
 
-bool HttpServerTaskDoResponse(HttpThreadTask* task)
-{
-    bool task_is_done = false;
+//bool HttpServerTaskDoResponse(HttpThreadTask* task)
+//{
+//    bool task_is_done = false;
+//
+//    // Read request
+//    DataBuffer buff = Server::ReadBuffer(task->connection);
+//    HttpRequest request = HttpServer::ReadRequest(&buff);
+//
+//    //
+//    assert(task->command_processor);
+//    HttpResponse response = task->command_processor->ProcessRequest(&request);
+//
+//    // Send responce
+//    auto buffer = response.Generate();
+//    sock::SendBuffer(task->connection, &buffer);
+//
+//    // change stat
+//    auto descr = GetConnectionDescriptor(task->connection);
+//
+//    if (response.DoCloseConnection()) {
+//        descr->state = HttpConnectionState::CNeedClose;
+//    }
+//    else {
+//        descr->state = HttpConnectionState::CDataSending;
+//    }
+//
+//    task->completed = true;
+//    return task_is_done;
+//}
+//
+//bool HttpServerTaskSendData(HttpThreadTask* task)
+//{
+//    bool task_is_done = false;
+//
+//    assert(false); // TODO: this
+//
+//    task->completed = true;
+//
+//    return task_is_done;
+//}
 
-    // Read request
-    DataBuffer buff = Server::ReadBuffer(task->connection);
-    HttpRequest request = HttpServer::ReadRequest(&buff);
-
-    //
-    assert(task->command_processor);
-    HttpResponse response = task->command_processor->ProcessRequest(&request);
-
-    // Send responce
-    auto buffer = response.Generate();
-    sock::SendBuffer(task->connection, &buffer);
-
-    // change stat
-    auto descr = GetConnectionDescriptor(task->connection);
-
-    if (response.DoCloseConnection()) {
-        descr->state = HttpConnectionState::CNeedClose;
-    }
-    else {
-        descr->state = HttpConnectionState::CDataSending;
-    }
-
-    task->completed = true;
-    return task_is_done;
-}
-
-bool HttpServerTaskSendData(HttpThreadTask* task)
-{
-    bool task_is_done = false;
-
-    assert(false); // TODO: this
-
-    task->completed = true;
-
-    return task_is_done;
-}
-
-bool HttpServerTaskRunner(ThreadTask* task)
-{
-    bool task_is_done = false;
-
-    log("HttpServerTaskRunner task : " + std::to_string(task->id) );
-
-    HttpThreadTask* task_ = dynamic_cast<HttpThreadTask*>(task);
-    if (task_ == nullptr)
-    {
-        log("HttpServerTaskRunner task : " + std::to_string(task->id) + " type is bad" );
-    }
-    else {
-        switch (task_->task) {
-            case HttpThreadTask::Type::ENone:
-                task_is_done = true;
-                break;
-
-            case HttpThreadTask::Type::EDoResponse:
-                task_is_done = HttpServerTaskDoResponse(task_);
-                break;
-
-            case HttpThreadTask::Type::ESendData:
-                task_is_done = HttpServerTaskSendData(task_);
-                break;
-
-            default:
-                error("HttpServerTaskRunner: unemplimaented task");
-                break;
-        }
-    }
-
-    return task_is_done;
-}
+//bool HttpServerTaskRunner(ThreadTask* task)
+//{
+//    bool task_is_done = false;
+//
+//    log("HttpServerTaskRunner task : " + std::to_string(task->id) );
+//
+//    HttpThreadTask* task_ = dynamic_cast<HttpThreadTask*>(task);
+//    if (task_ == nullptr)
+//    {
+//        log("HttpServerTaskRunner task : " + std::to_string(task->id) + " type is bad" );
+//    }
+//    else {
+//        switch (task_->task) {
+//            case HttpThreadTask::Type::ENone:
+//                task_is_done = true;
+//                break;
+//
+//            case HttpThreadTask::Type::EDoResponse:
+//                task_is_done = HttpServerTaskDoResponse(task_);
+//                break;
+//
+//            case HttpThreadTask::Type::ESendData:
+//                task_is_done = HttpServerTaskSendData(task_);
+//                break;
+//
+//            default:
+//                error("HttpServerTaskRunner: unemplimaented task");
+//                break;
+//        }
+//    }
+//
+//    return task_is_done;
+//}
 
 }
 
 
 std::unique_ptr<ThreadPool> HttpServer::CreateThreadPool() {
-    return std::unique_ptr<ThreadPool>(new ThreadPool(HttpServerTaskRunner));
+    return std::unique_ptr<ThreadPool>(new ThreadPool()); //HttpServerTaskRunner));
 }
 
 HttpThreadTask::Type HttpServer::ReceiveTaskTypeForConnection(connection_handler handler) {

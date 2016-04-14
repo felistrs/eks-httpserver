@@ -50,8 +50,8 @@ protected:
     void CloseConnection(connection_handler handler);
 
 
-    std::list<std::unique_ptr<ThreadTask>> _http_tasks;
-    std::list<std::unique_ptr<ThreadTask>> _http_tasks_in_process;
+    std::list<std::unique_ptr<Runnable>> _http_tasks;
+    std::list<std::unique_ptr<Runnable>> _http_tasks_in_process;
 
 private:
     void StartListening();
@@ -59,7 +59,7 @@ private:
     void StopCommunication();
     void CloseAllConnections();
 
-    void EraseCompletedTasks();
+//    void EraseCompletedTasks();
 
 
     int _port;
