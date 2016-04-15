@@ -5,48 +5,26 @@
 #ifndef SERVER_HTTPWORKERRUNNABLES_H
 #define SERVER_HTTPWORKERRUNNABLES_H
 
-
-#include <cassert>
-
-#include "httpThings.h"
-#include "socket/socketFunctions.h"
 #include "socket/socketTypes.h"
 #include "thread_things/runnable.h"
-#include "utils/dataBuffer.h"
 
 
 namespace server {
 
+class HttpCommandProcessorInterface;
+
+enum class HttpWorkerRunnableType { ENone, EDoResponse, ESendData };
+
 
 class HttpServerDoResponseRunnable : public Runnable {
 public:
+    virtual ~HttpServerDoResponseRunnable() {}
+
     HttpServerDoResponseRunnable(connection_handler connection, HttpCommandProcessorInterface *command_processor) :
             _connection(connection),
-            _command_processor(command_processor) { }
+            _command_processor(command_processor) {}
 
-    virtual void run() {
-        // Read request
-        DataBuffer buff = Server::ReadBuffer(_connection);
-        HttpRequest request = HttpServer::ReadRequest(&buff);
-
-        //
-        assert(_command_processor);
-        HttpResponse response = _command_processor->ProcessRequest(&request);
-
-        // Send responce
-        auto buffer = response.Generate();
-        sock::SendBuffer(_connection, &buffer);
-
-        // change stat
-        auto descr = GetConnectionDescriptor(_connection);
-
-        if (response.DoCloseConnection()) {
-            descr->state = HttpConnectionState::CNeedClose;
-        }
-        else {
-            descr->state = HttpConnectionState::CDataSending;
-        }
-    }
+    virtual void run();
 
 private:
     connection_handler _connection;
@@ -56,9 +34,9 @@ private:
 
 class HttpServerSendDataRunnable : public Runnable {
 public:
-    virtual void run() {
-        assert(false); // TODO: this
-    }
+    virtual ~HttpServerSendDataRunnable() {}
+
+    virtual void run();
 };
 
 

@@ -79,25 +79,23 @@ void Server::Start()
             error("Need write : " + to_string(conn_handler));
         }
 
-        // Task for thread pool
+        // Runnable for thread pool
         {
-            for (auto& task : _http_tasks) {
-                _communication_thread_pool->ScheduleExecutionTask(task.get(), [](Runnable* runnable) {
-                    log("TASK IS DONE !!!"); // + std::to_string(reinterpret_cast<int>(runnable)));
-                    // TODO: identify
+            // Schedule
+            for (auto& runnable_ : _http_runners) {
+                _communication_thread_pool->ScheduleExecutionRunnable(runnable_.get(), [this](Runnable *runnable) {
+                    log("Runnable is done : " + std::to_string(runnable->get_id()));
+                    this->MarkRunnerStatusToDone(runnable);
                 });
             }
 
-            _http_tasks_in_process.splice(
-                    _http_tasks_in_process.begin(), _http_tasks);
+            ChangeRunnersStatusToInProgress(_http_runners);
 
-//            EraseCompletedTasks();
+            EraseCompletedRunners();
         }
 
         // sleep
         this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
-
-//        break; // !!!
     }
 
 }
@@ -155,24 +153,38 @@ DataBuffer Server::ReadBuffer(connection_handler conn) {
     return buff;
 }
 
-//void Server::EraseCompletedTasks() {
-//    std::queue<ThreadTask*> completed_tasks = _communication_thread_pool->PopCompletedTasks();
-//
-//    while (completed_tasks.size())
-//    {
-//        ThreadTask* task = completed_tasks.front();
-//        completed_tasks.pop();
-//
-//        for (auto it = _http_tasks_in_process.begin(); it != _http_tasks_in_process.end(); ++it)
-//        {
-//            if (it->get() == task)
-//            {
-//                _http_tasks_in_process.erase(it);
-//                break;
-//            }
-//        }
-//    }
-//}
+void Server::ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list)
+{
+    _http_runners_in_process.splice(
+            _http_runners_in_process.begin(), list);
+}
 
+void Server::MarkRunnerStatusToDone(Runnable *runnable)
+{
+    _http_mark_as_done__safe.Push(runnable);
+}
+
+void Server::EraseCompletedRunners()
+{
+    auto list = _http_mark_as_done__safe.PopAll();
+
+    while (list.size())
+    {
+        Runnable* item = list.front();
+        list.pop();
+
+        auto it = std::find_if(_http_runners_in_process.begin(), _http_runners_in_process.end(), [&item](const auto& i) {
+            return i.get() == item;
+        });
+
+        if (it == _http_runners_in_process.end()) {
+            throw ConnectionException("(Server::EraseCompletedRunners) Runner was not found : " +
+                                              std::to_string(item->get_id()));
+        }
+        else {
+            _http_runners_in_process.erase(it);
+        }
+    }
+}
 
 }

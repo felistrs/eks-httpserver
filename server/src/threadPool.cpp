@@ -42,8 +42,8 @@ void ThreadPool::Start(unsigned thread_count)
     }
 }
 
-void ThreadPool::ScheduleExecutionTask(Runnable *runnable,
-                                       ThreadTask::RunnableDoneCallback done_callback)
+void ThreadPool::ScheduleExecutionRunnable(Runnable *runnable,
+                                           ThreadTask::RunnableDoneCallback done_callback)
 {
     _runnable_queue.Push(ThreadTask(runnable, done_callback));
 }

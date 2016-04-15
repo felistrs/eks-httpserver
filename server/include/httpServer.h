@@ -8,7 +8,10 @@
 
 #include "server.h"
 #include "httpThings.h"
+#include "httpWorkerRunnables.h"
 
+
+class DataBuffer;
 
 namespace server {
 
@@ -37,11 +40,10 @@ protected:
 
     virtual std::unique_ptr<ThreadPool> CreateThreadPool();
 
-    HttpThreadTask::Type ReceiveTaskTypeForConnection(connection_handler handler);
+    HttpWorkerRunnableType ReceiveRunnableTypeForConnection(connection_handler handler);
+    std::unique_ptr<Runnable> CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type);
 
 private:
-    long _thread_task_counter = 0;
-
     HttpCommandProcessorInterface* _command_processor;
 
 };

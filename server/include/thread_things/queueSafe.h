@@ -28,6 +28,8 @@ private:
 };
 
 template class QueueSafe<ThreadTask>;
+class Runnable;
+template class QueueSafe<Runnable*>;
 
 
 #endif //THREAD_THINGS__QUEUESAFE_H

@@ -16,19 +16,18 @@ class DataBuffer;
 namespace server {
 
 
-class HttpCommandProcessorInterface;
+//class HttpCommandProcessorInterface;
 
-
-struct HttpThreadTask : public ThreadTask {
-    virtual ~HttpThreadTask() {}
-
-    enum class Type { ENone, EDoResponse, ESendData };
-
-    Type task;
-    connection_handler connection = CONNECTION_HANDLER_INVALID;
-
-    HttpCommandProcessorInterface* command_processor = nullptr;
-};
+//struct HttpThreadTask : public ThreadTask {
+//    virtual ~HttpThreadTask() {}
+//
+//    enum class Type { ENone, EDoResponse, ESendData };
+//
+//    Type task;
+//    connection_handler connection = CONNECTION_HANDLER_INVALID;
+//
+//    HttpCommandProcessorInterface* command_processor = nullptr;
+//};
 
 
 enum HttpConnectionState {

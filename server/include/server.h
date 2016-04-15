@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "socket/socket.h"
+#include "thread_things/queueSafe.h"
 #include "thread_things/threadPool.h"
 
 
@@ -50,8 +51,11 @@ protected:
     void CloseConnection(connection_handler handler);
 
 
-    std::list<std::unique_ptr<Runnable>> _http_tasks;
-    std::list<std::unique_ptr<Runnable>> _http_tasks_in_process;
+    QueueSafe<Runnable*> _http_mark_as_done__safe;
+
+    std::list<std::unique_ptr<Runnable>> _http_runners;
+    std::list<std::unique_ptr<Runnable>> _http_runners_in_process;
+
 
 private:
     void StartListening();
@@ -59,7 +63,8 @@ private:
     void StopCommunication();
     void CloseAllConnections();
 
-//    void EraseCompletedTasks();
+    void ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list);
+    void MarkRunnerStatusToDone(Runnable *runnable);
 
 
     int _port;
@@ -74,6 +79,7 @@ private:
     // thread for communication
     std::unique_ptr<ThreadPool> _communication_thread_pool;
 
+    void EraseCompletedRunners();
 };
 
 

@@ -4,9 +4,16 @@
 
 class Runnable {
 public:
+    Runnable() {}
     virtual ~Runnable() {}
 
     virtual void run() = 0;
+
+public:
+    int get_id() { return _id; }
+
+private:
+    int _id = 0;
 };
 
 

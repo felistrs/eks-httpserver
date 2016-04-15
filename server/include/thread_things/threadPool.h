@@ -29,7 +29,7 @@ public:
 
     void Start(unsigned thread_count = std::thread::hardware_concurrency() - 1);
 
-    void ScheduleExecutionTask(Runnable *runnable, ThreadTask::RunnableDoneCallback done_callback);
+    void ScheduleExecutionRunnable(Runnable *runnable, ThreadTask::RunnableDoneCallback done_callback);
 
     void JoinAllThreads();
 
@@ -37,6 +37,9 @@ protected:
     static void ThreadWorkerFunction(ThreadPool::WorkerContext *context);
 
 private:
+//    ThreadPool() {}
+
+
     std::vector<std::thread> _threads;
     std::vector<WorkerContext> _thread_func_context;
 
