@@ -7,6 +7,7 @@
 #include "utils/fileStorageReader.h"
 #include "utils/logger.h"
 #include "utils/programArgumentsParser.h"
+#include "utils/singletonContainer.h"
 
 
 int main(int argc, char **argv)
@@ -76,5 +77,9 @@ int main(int argc, char **argv)
             log("END.");
         }
     }
+
+    SingletonContainer::ReleaseAllSingletones();
+    SingletonContainer::ReleaseSingletonContainer();
+
     return 0;
 }

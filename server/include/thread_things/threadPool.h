@@ -12,10 +12,10 @@
 #include "thread_things/queueSafe.h"
 #include "thread_things/threadTask.h"
 #include "thread_things/runnable.h"
+#include "utils/singleton.h"
 
 
-
-class ThreadPool {
+class ThreadPool : public Singleton {
 public:
     struct WorkerContext
     {
@@ -25,7 +25,9 @@ public:
     };
 
 
-    ~ThreadPool();
+    virtual ~ThreadPool();
+
+    static ThreadPool* ReceiveDefault();
 
     void Start(unsigned thread_count = std::thread::hardware_concurrency() - 1);
 
@@ -37,7 +39,9 @@ protected:
     static void ThreadWorkerFunction(ThreadPool::WorkerContext *context);
 
 private:
-//    ThreadPool() {}
+    ThreadPool() {}
+
+    static ThreadPool* s_default_thread_pool;
 
 
     std::vector<std::thread> _threads;

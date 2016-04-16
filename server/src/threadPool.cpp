@@ -5,6 +5,9 @@
 #include "thread_things/threadPool.h"
 
 
+ThreadPool* ThreadPool::s_default_thread_pool = nullptr;
+
+
 void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
 {
     log("Thread start : " + std::to_string(context->id) );
@@ -59,6 +62,16 @@ void ThreadPool::JoinAllThreads()
     _threads.clear();
     _thread_func_context.clear();
 }
+
+ThreadPool *ThreadPool::ReceiveDefault() {
+    if (s_default_thread_pool) {
+        return s_default_thread_pool;
+    }
+    else {
+        return s_default_thread_pool = new ThreadPool();
+    }
+}
+
 
 ThreadPool::~ThreadPool() {
     JoinAllThreads();
