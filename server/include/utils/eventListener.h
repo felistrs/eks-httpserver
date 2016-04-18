@@ -13,8 +13,7 @@ public:
 };
 
 
-class ProgramBreakEvent;
-template class EventListener<ProgramBreakEvent>;
+#include "utils/eventListener.inl.h"
 
 
 #endif //SERVER_EVENTLISTENER_H
