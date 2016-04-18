@@ -145,7 +145,7 @@ tm StringToTimeT(std::string str)
 {
     using namespace std;
 
-    tm t;
+    tm t = tm();
 
     auto tokens = TokenizeDateString(str);
 

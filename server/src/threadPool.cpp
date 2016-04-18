@@ -24,7 +24,7 @@ void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
             task.done_callback(task.runnable);
         }
         else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO: 50 ms ?
+            std::this_thread::sleep_for(std::chrono::milliseconds(c_worker_task_wait_ms));
         }
     }
 

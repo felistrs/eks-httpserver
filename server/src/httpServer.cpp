@@ -39,16 +39,16 @@ void HttpServer::OnCommunication(connection_handler handler)
     if (descr)
     {
         // Close connection
-        if (descr->state == HttpConnectionState::CNeedClose) {
+        if (TestConnectionNeedsClose(descr))
+        {
             CloseConnection(handler);
         }
         else {
             // Push task to thread pool
             auto task_type = ReceiveRunnableTypeForConnection(handler);
 
-            if (task_type != HttpWorkerRunnableType::ENone) {
-                std::unique_ptr<Runnable> runnable = CreateRunnableWithType(handler, task_type);
-                _http_runners.push_back(std::move(runnable));
+            if (TestRunnableIsInitialized(task_type)) {
+                ScheduleRunnable(handler, task_type);
             }
             else {
                 error("HttpServer::OnCommunication none tasks for " + std::to_string(handler));
@@ -199,5 +199,21 @@ std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler 
     return runnable;
 }
 
+void HttpServer::ScheduleRunnable(connection_handler handler, const HttpWorkerRunnableType &task_type) {
+    std::unique_ptr<Runnable> runnable = CreateRunnableWithType(handler, task_type);
+    _http_runners.push_back(move(runnable));
+}
+
+bool HttpServer::TestRunnableIsInitialized(const HttpWorkerRunnableType &task_type) const
+{
+    return task_type != HttpWorkerRunnableType::ENone;
+}
+
+bool HttpServer::TestConnectionNeedsClose(const connection_descriptor *descr) const
+{
+    return descr->state == CNeedClose;
+}
+
 
 }
+

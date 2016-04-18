@@ -44,6 +44,11 @@ protected:
     std::unique_ptr<Runnable> CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type);
 
 private:
+    bool TestConnectionNeedsClose(const connection_descriptor *descr) const;
+    bool TestRunnableIsInitialized(const HttpWorkerRunnableType &task_type) const;
+    void ScheduleRunnable(connection_handler handler, const HttpWorkerRunnableType &task_type);
+
+
     HttpCommandProcessorInterface* _command_processor;
 
 };

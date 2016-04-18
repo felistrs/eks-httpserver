@@ -41,6 +41,8 @@ protected:
 private:
     ThreadPool() : Singleton(true) {}
 
+    static const unsigned c_worker_task_wait_ms = 50;
+
     static ThreadPool* s_default_thread_pool;
 
 

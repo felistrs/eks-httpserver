@@ -25,7 +25,7 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
 
     do {
         // Method
-        if (req->request_type != "GET") // Process only GET
+        if (TestUnimplementedMethods(req)) // Process only GET
         {
             resp.ChangeStatus(HttpResponse::Status::NotImplemented);
             break;
@@ -42,23 +42,7 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
             {
                 auto files = _file_storage_reader->GetFilesList(req->path);
 
-                HtmlWrapper html;
-                html.begin_paragraph();
-                html.push_header("Folder : " + req->path);
-                html.end_paragraph();
-                html.begin_list();
-                for (const auto& file : files)
-                {
-                    html.push_list_item(file);
-                }
-                html.end_list();
-
-                std::string content = html.GenerateHtml();
-
-                resp.push_header(HttpResponse::Header::ContentType, "text/html");
-                resp.push_header(HttpResponse::Header::ContentLength, std::to_string(content.size()) );
-
-                resp.set_content(content);
+                GenerateResponseWithFolderContent(req, resp, files);
             }
             // Is File
             else if (_file_storage_reader->IsFile(req->path))  // Is file
@@ -82,6 +66,34 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
     resp.push_header(HttpResponse::Header::Date, TimeTToString(GMTNow()));
 
     return resp;
+}
+
+void FtpCommandProcessor::GenerateResponseWithFolderContent(
+        const HttpRequest *req, HttpResponse &resp,
+        const std::vector<std::string> &files) const
+{
+    HtmlWrapper html;
+    html.begin_paragraph();
+    html.push_header("Folder : " + req->path);
+    html.end_paragraph();
+    html.begin_list();
+    for (const auto& file : files)
+                {
+                    html.push_list_item(file);
+                }
+    html.end_list();
+
+    std::__cxx11::string content = html.GenerateHtml();
+
+    resp.push_header(HttpResponse::ContentType, "text/html");
+    resp.push_header(HttpResponse::ContentLength, std::__cxx11::to_string(content.size()) );
+
+    resp.set_content(content);
+}
+
+bool FtpCommandProcessor::TestUnimplementedMethods(const HttpRequest *req) const
+{
+    return req->request_type != "GET";
 }
 
 
