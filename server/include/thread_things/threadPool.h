@@ -39,7 +39,7 @@ protected:
     static void ThreadWorkerFunction(ThreadPool::WorkerContext *context);
 
 private:
-    ThreadPool() {}
+    ThreadPool() : Singleton(true) {}
 
     static ThreadPool* s_default_thread_pool;
 

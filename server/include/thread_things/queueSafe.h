@@ -15,6 +15,7 @@
 template <class T>
 class QueueSafe {
 public:
+    bool TryPop(T& item);
     void Pop_WithWait(T& item);
     std::queue<T> PopAll();
 

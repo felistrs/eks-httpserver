@@ -21,4 +21,5 @@ public:
     virtual ~Singleton() {}
 };
 
+
 #endif //SERVER_SINGLETON_H

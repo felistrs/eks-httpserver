@@ -16,13 +16,16 @@ void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
     {
         ThreadTask task;
 
-        context->tasks_queue->Pop_WithWait(task);
-        log("Thread " + std::to_string(context->id) + " picked task : "); // + std::to_string(task->id) );
+        if (context->tasks_queue->TryPop(task)) {
+            //context->tasks_queue->Pop_WithWait(task);
+            log("Thread " + std::to_string(context->id) + " picked task : "); // + std::to_string(task->id) );
 
-        task.runnable->run();
-        task.done_callback( task.runnable );
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO: 50 ms ?
+            task.runnable->run();
+            task.done_callback(task.runnable);
+        }
+        else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));  // TODO: 50 ms ?
+        }
     }
 
     log("Thread finish : " + std::to_string(context->id) );

@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "utils/singleton.h"
 #include "utils/singletonContainer.h"
 
 

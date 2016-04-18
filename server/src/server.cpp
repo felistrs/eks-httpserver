@@ -94,17 +94,23 @@ void Server::Start()
             EraseCompletedRunners();
         }
 
+        // exit ?
+        if (_close_signal_recieved) {
+            break;
+        }
+
         // sleep
         this_thread::sleep_for(chrono::milliseconds(CListenSleepMS));
     }
 
+    Stop();
 }
 
 void Server::Stop()
 {
     if (_is_running)
     {
-        StopCommunication();
+        CloseAllConnections();
         sock::CloseConnection(_main_sock);
         _main_sock = 0;
         _is_running = false;
@@ -113,11 +119,6 @@ void Server::Stop()
 
 void Server::OnCommunication(connection_handler conn)
 {}
-
-void Server::StopCommunication()
-{
-    assert(false);
-}
 
 void Server::CloseAllConnections()
 {
@@ -151,6 +152,12 @@ DataBuffer Server::ReadBuffer(connection_handler conn) {
     std::cout << std::endl;
 
     return buff;
+}
+
+void Server::onEvent(ProgramBreakEvent *e)
+{
+    log("Server::onEvent: Received ProgramBreakEvent");
+    _close_signal_recieved = true;
 }
 
 void Server::ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list)

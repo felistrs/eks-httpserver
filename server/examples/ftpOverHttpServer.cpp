@@ -6,14 +6,19 @@
 #include "httpServer.h"
 #include "utils/fileStorageReader.h"
 #include "utils/logger.h"
+#include "utils/programBreakEventProvider.h"
 #include "utils/programArgumentsParser.h"
 #include "utils/singletonContainer.h"
+
 
 
 int main(int argc, char **argv)
 {
     using namespace std;
     using namespace server;
+
+    // Event registration
+    ProgramBreakEventProvider program_break_event_povider;
 
     // Arguments
     std::map<std::string, std::string> default_args = {
@@ -60,6 +65,8 @@ int main(int argc, char **argv)
                 HttpServer http_server(command_processor.get());
                 http_server.set_listening_port(port_number);
                 http_server.set_max_connections(max_connections);
+
+                program_break_event_povider.RegisterListener(&http_server);
 
                 http_server.Start();
             }

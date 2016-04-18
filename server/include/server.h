@@ -10,15 +10,17 @@
 #include "socket/socket.h"
 #include "thread_things/queueSafe.h"
 #include "thread_things/threadPool.h"
+#include "utils/eventListener.h"
 
 
 class DataBuffer;
+class ProgramBreakEvent;
 
 
 namespace server {
 
 
-class Server {
+class Server : public EventListener<ProgramBreakEvent> {
 public:
     Server() {}
     virtual ~Server();
@@ -28,6 +30,7 @@ public:
 
     static DataBuffer ReadBuffer(connection_handler conn);
 
+    virtual void onEvent(ProgramBreakEvent* e = nullptr);
 
 public:
     void set_listening_port(int port) { _port = port; }
@@ -60,7 +63,6 @@ protected:
 private:
     void StartListening();
 
-    void StopCommunication();
     void CloseAllConnections();
 
     void ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list);
@@ -71,6 +73,8 @@ private:
 
     bool _is_running = false;
     int _max_connections = 100;
+
+    bool _close_signal_recieved = false;
 
     // connections
     connection_handler _main_sock;

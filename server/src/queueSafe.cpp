@@ -39,3 +39,18 @@ std::queue<T> QueueSafe<T>::PopAll() {
     std::swap(_queue, ret);
     return ret;
 }
+
+template <class T>
+bool QueueSafe<T>::TryPop(T &item) {
+    std::unique_lock<std::mutex> ulock(_lock);
+
+    if (_queue.size()) {
+        item = _queue.front();
+        _queue.pop();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
