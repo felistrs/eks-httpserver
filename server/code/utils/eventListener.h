@@ -13,7 +13,7 @@ public:
 };
 
 
-#include "utils/eventListener.inl.h"
+#include "eventListener.inl.h"
 
 
 #endif //SERVER_EVENTLISTENER_H

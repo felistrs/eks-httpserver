@@ -2,9 +2,9 @@
 // Created by felistrs on 10.04.16.
 //
 
-#include "utils/programArgumentsParser.h"
+#include "programArgumentsParser.h"
 
-#include "utils/logger.h"
+#include "logger.h"
 
 
 ProgramArgumentsParser::ProgramArgumentsParser(int argc, char **argv, std::map<std::string, std::string> def_args) :

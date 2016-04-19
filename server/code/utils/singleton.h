@@ -5,8 +5,8 @@
 #ifndef SERVER_SINGLETON_H
 #define SERVER_SINGLETON_H
 
-#include "utils/logger.h"
-#include "utils/singletonContainer.h"
+#include "logger.h"
+#include "singletonContainer.h"
 
 
 class Singleton {

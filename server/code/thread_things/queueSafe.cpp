@@ -2,7 +2,7 @@
 #include <condition_variable>
 #include <thread>
 
-#include "thread_things/queueSafe.h"
+#include "queueSafe.h"
 
 
 template <class T>

@@ -4,8 +4,8 @@
 
 #include <cassert>
 
-#include "utils/singleton.h"
-#include "utils/singletonContainer.h"
+#include "singleton.h"
+#include "singletonContainer.h"
 
 
 SingletonContainer* SingletonContainer::_container = nullptr;

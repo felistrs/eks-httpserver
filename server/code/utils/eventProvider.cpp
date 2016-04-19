@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cassert>
 
-#include "utils/eventProvider.h"
-#include "utils/logger.h"
+#include "eventProvider.h"
+#include "logger.h"
 
 
 template <class T>

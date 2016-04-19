@@ -5,8 +5,8 @@
 #ifndef SERVER_EVENTPROVIDER_H
 #define SERVER_EVENTPROVIDER_H
 
-#include "utils/eventProvider.h"
-#include "utils/eventListener.h"
+#include "eventProvider.h"
+#include "eventListener.h"
 
 #include <vector>
 

@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "utils/programBreakEventProvider.h"
-#include "utils/logger.h"
+#include "programBreakEventProvider.h"
+#include "logger.h"
 
 
 ProgramBreakEventProvider* ProgramBreakEventProvider::event_provider = nullptr;

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "socket/socketTypes.h"
+#include "socketTypes.h"
 
 
 class DataBuffer;

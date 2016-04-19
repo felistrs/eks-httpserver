@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include "utils/htmlWrapper.h"
+#include "htmlWrapper.h"
 
 
 void HtmlWrapper::begin_paragraph()

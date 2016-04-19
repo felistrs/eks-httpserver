@@ -4,10 +4,10 @@
 #include <iostream>
 #include <thread>
 
-#include "socket/socket.h"
+#include "socket.h"
 
-#include "utils/dataBuffer.h"
-#include "utils/logger.h"
+#include "../utils/dataBuffer.h"
+#include "../utils/logger.h"
 
 
 namespace server { namespace sock {

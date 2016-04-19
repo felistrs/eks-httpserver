@@ -9,9 +9,9 @@
 #include <thread>
 #include <vector>
 
-#include "thread_things/queueSafe.h"
-#include "thread_things/threadTask.h"
-#include "thread_things/runnable.h"
+#include "queueSafe.h"
+#include "threadTask.h"
+#include "runnable.h"
 #include "utils/singleton.h"
 
 
@@ -41,8 +41,7 @@ protected:
 private:
     ThreadPool() : Singleton(true) {}
 
-    static const unsigned c_worker_task_wait_ms = 50;
-
+    static unsigned s_worker_task_wait_ms;
     static ThreadPool* s_default_thread_pool;
 
 

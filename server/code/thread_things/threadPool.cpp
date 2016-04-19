@@ -1,10 +1,11 @@
 #include <iostream>
-#include <utils/logger.h>
+#include "../utils/logger.h"
 
-#include "thread_things/queueSafe.h"
-#include "thread_things/threadPool.h"
+#include "queueSafe.h"
+#include "threadPool.h"
 
 
+unsigned ThreadPool::s_worker_task_wait_ms = 50;
 ThreadPool* ThreadPool::s_default_thread_pool = nullptr;
 
 
@@ -24,7 +25,7 @@ void ThreadPool::ThreadWorkerFunction(ThreadPool::WorkerContext *context)
             task.done_callback(task.runnable);
         }
         else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(c_worker_task_wait_ms));
+            std::this_thread::sleep_for(std::chrono::milliseconds(ThreadPool::s_worker_task_wait_ms));
         }
     }
 

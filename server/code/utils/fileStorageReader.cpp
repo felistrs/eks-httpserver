@@ -1,10 +1,10 @@
 #include <dirent.h> // TODO: WINDOWS ?
 #include <sys/stat.h> // TODO: WINDOWS ?
 
-#include "utils/fileStorageReader.h"
+#include "fileStorageReader.h"
 
-#include "utils/logger.h"
-#include "utils/dataProvider.h"
+#include "logger.h"
+#include "dataProvider.h"
 
 
 FileStorageReader::FileStorageReader(std::string root) :

@@ -5,7 +5,7 @@
 #ifndef SERVER_PROGRAMBREAKEVENTPROVIDER_H
 #define SERVER_PROGRAMBREAKEVENTPROVIDER_H
 
-#include "utils/eventProvider.h"
+#include "eventProvider.h"
 
 
 struct ProgramBreakEvent {};

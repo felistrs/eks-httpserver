@@ -13,8 +13,8 @@
 #endif
 
 
-#include "socket/socketFunctions.h"
-#include "socket/socketTypes.h"
+#include "socketFunctions.h"
+#include "socketTypes.h"
 
 
 #endif // SOCKETS__SOCKETS_H

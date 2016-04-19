@@ -1,4 +1,4 @@
-#include "utils/dataProvider.h"
+#include "dataProvider.h"
 
 
 DataProvider::DataProvider(std::string fpath)

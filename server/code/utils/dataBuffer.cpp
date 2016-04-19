@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <utility>
 
-#include "utils/dataBuffer.h"
-#include "utils/logger.h"
+#include "dataBuffer.h"
+#include "logger.h"
 
 
 DataBuffer::DataBuffer(DataBuffer &&buff) :

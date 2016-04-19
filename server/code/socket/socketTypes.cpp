@@ -1,7 +1,7 @@
 #include <mutex>
 
-#include "socket/socketTypes.h"
-#include "utils/logger.h"
+#include "socketTypes.h"
+#include "../utils/logger.h"
 
 
 namespace server {

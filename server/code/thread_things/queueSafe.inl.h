@@ -5,13 +5,13 @@
 #ifndef SERVER_QUEUESAFE_INL_H
 #define SERVER_QUEUESAFE_INL_H
 
-#include "thread_things/queueSafe.h"
+#include "queueSafe.h"
 
 
-#include "thread_things/threadTask.h"
+#include "threadTask.h"
 template class QueueSafe<ThreadTask>;
 
-#include "thread_things/runnable.h"
+#include "runnable.h"
 template class QueueSafe<Runnable*>;
 
 

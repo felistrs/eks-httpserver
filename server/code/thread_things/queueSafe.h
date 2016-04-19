@@ -27,7 +27,7 @@ private:
 };
 
 
-#include "thread_things/queueSafe.inl.h"
+#include "queueSafe.inl.h"
 
 
 #endif //THREAD_THINGS__QUEUESAFE_H

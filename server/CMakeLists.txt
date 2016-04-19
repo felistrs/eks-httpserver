@@ -18,12 +18,12 @@ endif()
 find_package (Threads)
 
 # Http Server Library
-aux_source_directory(./src/ LIB_SRC_LIST)
+FILE(GLOB_RECURSE LIB_SRC_LIST "./code/*.cpp")
 add_library(ekshttpserver STATIC ${LIB_SRC_LIST})
 
 # example targets
-FILE(GLOB_RECURSE INC_ALL "./include/*.h")
-include_directories("include")
+FILE(GLOB_RECURSE INC_ALL "./code/*.h")
+include_directories("code")
 
 add_executable(${PROJECT_NAME} "./examples/ftpOverHttpServer.cpp" ${INC_ALL})
 

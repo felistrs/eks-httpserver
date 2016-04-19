@@ -1,12 +1,12 @@
 #include <assert.h>
-#include <utils/logger.h>
+#include "../utils/logger.h"
 
-#include "ftp_over_http/ftpCommandProcessor.h"
+#include "ftpCommandProcessor.h"
 
-#include "httpThings.h"
-#include "utils/fileStorageReader.h"
-#include "utils/htmlWrapper.h"
-#include "utils/dateTime.h"
+#include "../httpThings.h"
+#include "../utils/fileStorageReader.h"
+#include "../utils/htmlWrapper.h"
+#include "../utils/dateTime.h"
 
 
 namespace server {

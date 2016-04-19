@@ -2,7 +2,7 @@
 #define FTP_OVER_HTTP__FTP_COMMAND_PROCESSOR_H
 
 #include <vector>
-#include "httpCommandProcessorInterface.h"
+#include "../httpCommandProcessorInterface.h"
 
 
 class FileStorageReader;

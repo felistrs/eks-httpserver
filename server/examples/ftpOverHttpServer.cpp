@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "ftp_over_http/ftpCommandProcessor.h"
-#include "httpServer.h"
+#include "../code/httpServer.h"
 #include "utils/fileStorageReader.h"
 #include "utils/logger.h"
 #include "utils/programBreakEventProvider.h"
