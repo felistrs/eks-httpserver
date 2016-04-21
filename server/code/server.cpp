@@ -43,6 +43,13 @@ void Server::Start()
 
     for (;;)
     {
+        // Test for close
+        forEachConnection([this](connection_handler handler, connection_descriptor* descr) {
+            if (this->TestConnectionNeedsClose(descr)) {
+                this->CloseConnection(handler);
+            }
+        });
+
         // Test for incoming events
         std::vector<connection_handler> conn_read, conn_write, conn_except;
         std::vector<connection_handler> sock_conn = _comm_connections;
@@ -63,14 +70,20 @@ void Server::Start()
             }
             else {
                 log(to_string(conn_handler) + " need communication");
-                OnCommunication(conn_handler);
+                OnRead(conn_handler);
             }
         }
 
         // Test connections for write
         for (auto conn_handler : conn_write)
         {
-            error("Need write : " + to_string(conn_handler));
+            if (conn_handler == _main_sock) {
+                error("Main sock Need write");
+            }
+            else {
+                log(to_string(conn_handler) + " need write");
+                OnWrite(conn_handler);
+            }
         }
 
         // Test connections for exceptions
@@ -82,14 +95,14 @@ void Server::Start()
         // Runnable for thread pool
         {
             // Schedule
-            for (auto& runnable_ : _http_runners) {
+            for (auto& runnable_ : _runnables) {
                 _communication_thread_pool->ScheduleExecutionRunnable(runnable_.get(), [this](Runnable *runnable) {
                     log("Runnable is done : " + std::to_string(runnable->get_id()));
                     this->MarkRunnerStatusToDone(runnable);
                 });
             }
 
-            ChangeRunnersStatusToInProgress(_http_runners);
+            ChangeRunnersStatusToInProgress(_runnables);
 
             EraseCompletedRunners();
         }
@@ -116,9 +129,6 @@ void Server::Stop()
         _is_running = false;
     }
 }
-
-void Server::OnCommunication(connection_handler conn)
-{}
 
 void Server::CloseAllConnections()
 {
@@ -162,34 +172,34 @@ void Server::onEvent(ProgramBreakEvent *e)
 
 void Server::ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list)
 {
-    _http_runners_in_process.splice(
-            _http_runners_in_process.begin(), list);
+    _runnables_in_process.splice(
+            _runnables_in_process.begin(), list);
 }
 
 void Server::MarkRunnerStatusToDone(Runnable *runnable)
 {
-    _http_mark_as_done__safe.Push(runnable);
+    _runnable_mark_as_done__safe.Push(runnable);
 }
 
 void Server::EraseCompletedRunners()
 {
-    auto list = _http_mark_as_done__safe.PopAll();
+    auto list = _runnable_mark_as_done__safe.PopAll();
 
     while (list.size())
     {
         Runnable* item = list.front();
         list.pop();
 
-        auto it = std::find_if(_http_runners_in_process.begin(), _http_runners_in_process.end(), [&item](const auto& i) {
+        auto it = std::find_if(_runnables_in_process.begin(), _runnables_in_process.end(), [&item](const auto& i) {
             return i.get() == item;
         });
 
-        if (it == _http_runners_in_process.end()) {
+        if (it == _runnables_in_process.end()) {
             throw ConnectionException("(Server::EraseCompletedRunners) Runner was not found : " +
                                               std::to_string(item->get_id()));
         }
         else {
-            _http_runners_in_process.erase(it);
+            _runnables_in_process.erase(it);
         }
     }
 }

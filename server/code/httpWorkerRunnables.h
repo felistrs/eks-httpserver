@@ -13,16 +13,44 @@ namespace server {
 
 class HttpCommandProcessorInterface;
 
-enum class HttpWorkerRunnableType { ENone, EDoResponse, ESendData };
+enum class HttpWorkerRunnableType { ENone, EReadRequest, EWriteResponse, ESendData };
 
 
-class HttpServerDoResponseRunnable : public Runnable {
+class HttpServerReadRunnable : public Runnable {
 public:
-    virtual ~HttpServerDoResponseRunnable() {}
+    virtual ~HttpServerReadRunnable() {}
+};
 
-    HttpServerDoResponseRunnable(connection_handler connection, HttpCommandProcessorInterface *command_processor) :
-            _connection(connection),
-            _command_processor(command_processor) {}
+
+class HttpServerWriteRunnable : public Runnable {
+public:
+    virtual ~HttpServerWriteRunnable() {}
+};
+
+
+class HttpServerReadRequestRunnable : public HttpServerReadRunnable {
+public:
+    virtual ~HttpServerReadRequestRunnable() {}
+
+    HttpServerReadRequestRunnable(connection_handler connection) :
+            _connection(connection)
+    {}
+
+    virtual void run();
+
+private:
+    connection_handler _connection;
+};
+
+
+class HttpServerWriteResponseRunnable : public HttpServerWriteRunnable {
+public:
+    virtual ~HttpServerWriteResponseRunnable() {}
+
+    HttpServerWriteResponseRunnable(connection_handler connection, HttpCommandProcessorInterface *command_processor) :
+        _connection(connection),
+        _command_processor(command_processor)
+    {}
 
     virtual void run();
 
@@ -32,7 +60,7 @@ private:
 };
 
 
-class HttpServerSendDataRunnable : public Runnable {
+class HttpServerSendDataRunnable : public HttpServerReadRunnable {
 public:
     virtual ~HttpServerSendDataRunnable() {}
 

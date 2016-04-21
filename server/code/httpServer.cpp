@@ -13,71 +13,88 @@
 #include "utils/dataBuffer.h"
 
 
-namespace server {
+namespace server
+{
 
 
-HttpServer::HttpServer(HttpCommandProcessorInterface *processor) :
+HttpServer::HttpServer(HttpCommandProcessorInterface *processor)
+    :
     _command_processor(processor)
-{}
+{ }
 
 void HttpServer::OnConnect(connection_handler handler)
 {
     auto descr = GetConnectionDescriptor(handler);
-    if (descr)
-    {
-        descr->state = HttpConnectionState::CNeedReqResp;
+    if (descr) {
+        descr->state = HttpConnectionState::CNeedRequest;
     }
     else {
         throw ConnectionException("HttpServer::OnConnect : invalid handler");
     }
 }
 
-void HttpServer::OnCommunication(connection_handler handler)
+void HttpServer::OnRead(connection_handler handler)
 {
     auto descr = GetConnectionDescriptor(handler);
 
-    if (descr)
-    {
-        // Close connection
-        if (TestConnectionNeedsClose(descr))
-        {
-            CloseConnection(handler);
-        }
-        else {
+    if (descr) {
+        if (!descr->_access_lock) {
             // Push task to thread pool
             auto task_type = ReceiveRunnableTypeForConnection(handler);
 
             if (TestRunnableIsInitialized(task_type)) {
+                descr->_access_lock = true;
                 ScheduleRunnable(handler, task_type);
             }
             else {
-                error("HttpServer::OnCommunication none tasks for " + std::to_string(handler));
+                error("HttpServer::OnRead none tasks for " + std::to_string(handler));
             }
         }
     }
     else {
-        error("HttpServer::OnCommunication bad handler" + std::to_string(handler));
+        error("HttpServer::OnRead bad handler" + std::to_string(handler));
     }
 
+}
+
+void HttpServer::OnWrite(connection_handler handler)
+{
+    auto descr = GetConnectionDescriptor(handler);
+
+    if (descr) {
+        if (!descr->_access_lock) {
+            // Push task to thread pool
+            auto task_type = ReceiveRunnableTypeForConnection(handler);
+
+            if (TestRunnableIsInitialized(task_type)) {
+                descr->_access_lock = true;
+                ScheduleRunnable(handler, task_type);
+            }
+            else {
+                error("HttpServer::OnWrite none tasks for " + std::to_string(handler));
+            }
+        }
+    }
+    else {
+        error("HttpServer::OnWrite bad handler" + std::to_string(handler));
+    }
 }
 
 void HttpServer::OnDisconnect(connection_handler conn)
 {}
 
-HttpRequest HttpServer::ReadRequest(DataBuffer *buff)
+void HttpServer::ReadRequest(DataBuffer *buff, HttpRequest& request)
 {
     using namespace std;
 
-    HttpRequest package;
+    ReadDataChunk(buff, request.request_type, ' ');
+    debug_string(request.request_type);
 
-    ReadDataChunk(buff, package.request_type, ' ');
-    debug_string(package.request_type);
+    ReadDataChunk(buff, request.path, ' ');
+    debug_string(request.path);
 
-    ReadDataChunk(buff, package.path, ' ');
-    debug_string(package.path);
-
-    ReadDataChunk(buff, package.protocol);
-    debug_string(package.protocol);
+    ReadDataChunk(buff, request.protocol);
+    debug_string(request.protocol);
 
 
     string line;
@@ -89,10 +106,8 @@ HttpRequest HttpServer::ReadRequest(DataBuffer *buff)
 
         ReadDataChunk(buff, line);
 
-        package.other.push_back(line); // TODO: parse for more functionality
+        request.other.push_back(line); // TODO: parse for more functionality
     }
-
-    return package;
 }
 
 void HttpServer::ReadDataChunk(
@@ -143,8 +158,12 @@ HttpWorkerRunnableType HttpServer::ReceiveRunnableTypeForConnection(connection_h
     switch (descr->state) {
         case HttpConnectionState::CNone: break;
 
-        case HttpConnectionState::CNeedReqResp:
-            task_type = HttpWorkerRunnableType::EDoResponse;
+        case HttpConnectionState::CNeedRequest:
+            task_type = HttpWorkerRunnableType::EReadRequest;
+            break;
+
+        case HttpConnectionState::CNeedResponse:
+            task_type = HttpWorkerRunnableType::EWriteResponse;
             break;
 
         case HttpConnectionState::CDataSending:
@@ -178,8 +197,12 @@ std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler 
     if (descr) {
         switch (type)
         {
-            case HttpWorkerRunnableType::EDoResponse:
-                runnable = std::unique_ptr<Runnable>(new HttpServerDoResponseRunnable(handler, _command_processor));
+            case HttpWorkerRunnableType::EReadRequest:
+                runnable = std::unique_ptr<Runnable>(new HttpServerReadRequestRunnable(handler));
+                break;
+
+            case HttpWorkerRunnableType::EWriteResponse:
+                runnable = std::unique_ptr<Runnable>(new HttpServerWriteResponseRunnable(handler, _command_processor));
                 break;
 
             case HttpWorkerRunnableType::ESendData:
@@ -201,7 +224,7 @@ std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler 
 
 void HttpServer::ScheduleRunnable(connection_handler handler, const HttpWorkerRunnableType &task_type) {
     std::unique_ptr<Runnable> runnable = CreateRunnableWithType(handler, task_type);
-    _http_runners.push_back(move(runnable));
+    _runnables.push_back(move(runnable));
 }
 
 bool HttpServer::TestRunnableIsInitialized(const HttpWorkerRunnableType &task_type) const

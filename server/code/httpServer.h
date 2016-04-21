@@ -26,7 +26,7 @@ public:
     HttpServer(HttpCommandProcessorInterface* processor);
     virtual ~HttpServer() {}
 
-    static HttpRequest ReadRequest(DataBuffer* buff);
+    static void ReadRequest(DataBuffer* buff, HttpRequest& request_out);
 
     static void ReadDataChunk(
             DataBuffer *in,
@@ -35,7 +35,8 @@ public:
 
 protected:
     void OnConnect(connection_handler conn) override;
-    void OnCommunication(connection_handler conn) override;
+    void OnRead(connection_handler conn) override;
+    void OnWrite(connection_handler conn) override;
     void OnDisconnect(connection_handler conn) override;
 
     virtual std::unique_ptr<ThreadPool> CreateThreadPool();
@@ -44,7 +45,7 @@ protected:
     std::unique_ptr<Runnable> CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type);
 
 private:
-    bool TestConnectionNeedsClose(const connection_descriptor *descr) const;
+    virtual bool TestConnectionNeedsClose(const connection_descriptor *descr) const;
     bool TestRunnableIsInitialized(const HttpWorkerRunnableType &task_type) const;
     void ScheduleRunnable(connection_handler handler, const HttpWorkerRunnableType &task_type);
 

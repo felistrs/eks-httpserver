@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <socket/socketTypes.h>
 
 #include "socket/socket.h"
 #include "thread_things/queueSafe.h"
@@ -46,7 +47,8 @@ protected:
 
 
     virtual void OnConnect(connection_handler conn) = 0;
-    virtual void OnCommunication(connection_handler conn) = 0;
+    virtual void OnRead(connection_handler conn) = 0;
+    virtual void OnWrite(connection_handler conn) = 0;
     virtual void OnDisconnect(connection_handler conn) = 0;
 
     virtual std::unique_ptr<ThreadPool> CreateThreadPool() = 0;
@@ -54,10 +56,10 @@ protected:
     void CloseConnection(connection_handler handler);
 
 
-    QueueSafe<Runnable*> _http_mark_as_done__safe;
+    QueueSafe<Runnable*> _runnable_mark_as_done__safe;
 
-    std::list<std::unique_ptr<Runnable>> _http_runners;
-    std::list<std::unique_ptr<Runnable>> _http_runners_in_process;
+    std::list<std::unique_ptr<Runnable>> _runnables;
+    std::list<std::unique_ptr<Runnable>> _runnables_in_process;
 
 
 private:
@@ -68,6 +70,8 @@ private:
     void ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list);
     void MarkRunnerStatusToDone(Runnable *runnable);
 
+    void EraseCompletedRunners();
+    virtual bool TestConnectionNeedsClose(const connection_descriptor *descr) const = 0;
 
     int _port;
 
@@ -83,7 +87,6 @@ private:
     // thread for communication
     std::unique_ptr<ThreadPool> _communication_thread_pool;
 
-    void EraseCompletedRunners();
 };
 
 

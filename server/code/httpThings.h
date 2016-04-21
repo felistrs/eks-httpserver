@@ -21,7 +21,7 @@ namespace server {
 //struct HttpThreadTask : public ThreadTask {
 //    virtual ~HttpThreadTask() {}
 //
-//    enum class Type { ENone, EDoResponse, ESendData };
+//    enum class Type { ENone, EReadRequest, ESendData };
 //
 //    Type task;
 //    connection_handler connection = CONNECTION_HANDLER_INVALID;
@@ -32,13 +32,16 @@ namespace server {
 
 enum HttpConnectionState {
     CNone = 0,
-    CNeedReqResp,
+    CNeedRequest,
+    CNeedResponse,
     CDataSending,
     CNeedClose,
 };
 
 
-struct HttpRequest {
+struct HttpRequest : public communication_type {
+    virtual ~HttpRequest() {}
+
     std::string request_type;
     std::string path;
     std::string protocol;

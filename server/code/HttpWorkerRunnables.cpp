@@ -17,33 +17,64 @@
 namespace server {
 
 
-void HttpServerDoResponseRunnable::run() {
+void HttpServerReadRequestRunnable::run() {
     // Read request
     DataBuffer buff = Server::ReadBuffer(_connection);
-    HttpRequest request = HttpServer::ReadRequest(&buff);
 
-    //
+    HttpRequest* http_request = new HttpRequest;
+    std::unique_ptr<communication_type> request(http_request);
+
+    HttpServer::ReadRequest(&buff, *http_request);
+
+    auto descr = GetConnectionDescriptor(_connection);
+    if (descr) {
+        descr->request = std::move(request);
+        descr->state = HttpConnectionState::CNeedResponse;
+    } else {
+        throw  ConnectionException("(HttpServerReadRequestRunnable::run) : Bad descriptor;");
+    }
+
+    descr->_access_lock = false;
+}
+
+
+void HttpServerWriteResponseRunnable::run() {
     assert(_command_processor);
-    HttpResponse response = _command_processor->ProcessRequest(&request);
+
+    log("Writing response for :" + _connection);
+
+    auto descr = GetConnectionDescriptor(_connection);
+    if (descr == nullptr) {
+        throw  ConnectionException("(HttpServerReadRequestRunnable::run) : Bad descriptor;");
+    }
+
+    HttpRequest* request = dynamic_cast<HttpRequest*>(descr->request.get());
+    if (request == nullptr) {
+        throw  ConnectionException("(HttpServerReadRequestRunnable::run) : Empty request;");
+    }
+
+    HttpResponse response = _command_processor->ProcessRequest(request);
 
     // Send responce
     auto buffer = response.Generate();
     sock::SendBuffer(_connection, &buffer);
 
-    // change stat
-    auto descr = GetConnectionDescriptor(_connection);
-
+    // change state
     if (response.DoCloseConnection()) {
         descr->state = HttpConnectionState::CNeedClose;
     }
     else {
         descr->state = HttpConnectionState::CDataSending;
     }
+
+    descr->_access_lock = false;
 }
 
 
 void HttpServerSendDataRunnable::run() {
     assert(false); // TODO: this
+
+//    descr->_access_lock = false;
 }
 
 

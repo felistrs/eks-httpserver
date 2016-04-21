@@ -73,6 +73,15 @@ bool testIfAllHandlersReleased()
     return g_connection_descriptors.empty();
 }
 
+void forEachConnection(std::function<void(connection_handler, connection_descriptor *)> call_back)
+{
+    for (auto& it : g_connection_descriptors)
+    {
+        connection_descriptor* descr = &it.second;
+        call_back(it.first, descr);
+    }
+}
+
 connection_descriptor* GetConnectionDescriptor(connection_handler handler)
 {
     std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
