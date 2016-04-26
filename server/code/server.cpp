@@ -44,11 +44,18 @@ void Server::Start()
     for (;;)
     {
         // Test for close
-        forEachConnection([this](connection_handler handler, connection_descriptor* descr) {
-            if (this->TestConnectionNeedsClose(descr)) {
-                this->CloseConnection(handler);
+        {
+            std::vector<connection_handler> conn_to_close;
+            forEachConnection([this, &conn_to_close](connection_handler handler, connection_descriptor *descr)
+                              {
+                                  if (this->TestConnectionNeedsClose(descr)) {
+                                      conn_to_close.push_back(handler);
+                                  }
+                              });
+            for (auto handler : conn_to_close) {
+                CloseConnection(handler);
             }
-        });
+        }
 
         // Test for incoming events
         std::vector<connection_handler> conn_read, conn_write, conn_except;
