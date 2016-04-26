@@ -43,7 +43,6 @@ void HttpServer::OnRead(connection_handler handler)
             auto task_type = ReceiveRunnableTypeForConnection(handler);
 
             if (TestRunnableIsInitialized(task_type)) {
-                descr->_access_lock = true;
                 ScheduleRunnable(handler, task_type);
             }
             else {
@@ -67,7 +66,6 @@ void HttpServer::OnWrite(connection_handler handler)
             auto task_type = ReceiveRunnableTypeForConnection(handler);
 
             if (TestRunnableIsInitialized(task_type)) {
-                descr->_access_lock = true;
                 ScheduleRunnable(handler, task_type);
             }
             else {
@@ -187,10 +185,10 @@ HttpWorkerRunnableType HttpServer::ReceiveRunnableTypeForConnection(connection_h
 }
 
 
-std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type) {
+std::unique_ptr<ServerRunnable> HttpServer::CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type) {
     using namespace std;
 
-    std::unique_ptr<Runnable> runnable;
+    std::unique_ptr<ServerRunnable> runnable;
 
     auto descr = GetConnectionDescriptor(handler);
 
@@ -198,15 +196,15 @@ std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler 
         switch (type)
         {
             case HttpWorkerRunnableType::EReadRequest:
-                runnable = std::unique_ptr<Runnable>(new HttpServerReadRequestRunnable(handler));
+                runnable = std::unique_ptr<ServerRunnable>(new HttpServerReadRequestRunnable(handler));
                 break;
 
             case HttpWorkerRunnableType::EWriteResponse:
-                runnable = std::unique_ptr<Runnable>(new HttpServerWriteResponseRunnable(handler, _command_processor));
+                runnable = std::unique_ptr<ServerRunnable>(new HttpServerWriteResponseRunnable(handler, _command_processor));
                 break;
 
             case HttpWorkerRunnableType::ESendData:
-                runnable = std::unique_ptr<Runnable>(new HttpServerSendDataRunnable());
+                runnable = std::unique_ptr<ServerRunnable>(new HttpServerSendDataRunnable(handler));
                 break;
 
             case HttpWorkerRunnableType::ENone:
@@ -223,7 +221,8 @@ std::unique_ptr<Runnable> HttpServer::CreateRunnableWithType(connection_handler 
 }
 
 void HttpServer::ScheduleRunnable(connection_handler handler, const HttpWorkerRunnableType &task_type) {
-    std::unique_ptr<Runnable> runnable = CreateRunnableWithType(handler, task_type);
+    std::unique_ptr<ServerRunnable> runnable = CreateRunnableWithType(handler, task_type);
+    MarkRunnerStatusToWaitExecution(runnable.get());
     _runnables.push_back(move(runnable));
 }
 

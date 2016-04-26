@@ -33,8 +33,6 @@ void HttpServerReadRequestRunnable::run() {
     } else {
         throw  ConnectionException("(HttpServerReadRequestRunnable::run) : Bad descriptor;");
     }
-
-    descr->_access_lock = false;
 }
 
 
@@ -66,15 +64,11 @@ void HttpServerWriteResponseRunnable::run() {
     else {
         descr->state = HttpConnectionState::CDataSending;
     }
-
-    descr->_access_lock = false;
 }
 
 
 void HttpServerSendDataRunnable::run() {
     assert(false); // TODO: this
-
-//    descr->_access_lock = false;
 }
 
 

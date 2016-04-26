@@ -42,7 +42,7 @@ protected:
     virtual std::unique_ptr<ThreadPool> CreateThreadPool();
 
     HttpWorkerRunnableType ReceiveRunnableTypeForConnection(connection_handler handler);
-    std::unique_ptr<Runnable> CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type);
+    std::unique_ptr<ServerRunnable> CreateRunnableWithType(connection_handler handler, HttpWorkerRunnableType type);
 
 private:
     virtual bool TestConnectionNeedsClose(const connection_descriptor *descr) const;

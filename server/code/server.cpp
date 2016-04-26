@@ -103,13 +103,14 @@ void Server::Start()
         {
             // Schedule
             for (auto& runnable_ : _runnables) {
-                _communication_thread_pool->ScheduleExecutionRunnable(runnable_.get(), [this](Runnable *runnable) {
+                Runnable* runnable__ = dynamic_cast<Runnable*>(runnable_.get());
+                _communication_thread_pool->ScheduleExecutionRunnable(runnable__, [this](Runnable *runnable) {
                     log("Runnable is done : " + std::to_string(runnable->get_id()));
                     this->MarkRunnerStatusToDone(runnable);
                 });
             }
 
-            ChangeRunnersStatusToInProgress(_runnables);
+            MarkRunnersStatusToInProgress(_runnables);
 
             EraseCompletedRunners();
         }
@@ -177,15 +178,35 @@ void Server::onEvent(ProgramBreakEvent *e)
     _close_signal_recieved = true;
 }
 
-void Server::ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list)
+void Server::MarkRunnersStatusToInProgress(std::list<std::unique_ptr<ServerRunnable>> &list)
 {
     _runnables_in_process.splice(
             _runnables_in_process.begin(), list);
 }
 
+void Server::MarkRunnerStatusToWaitExecution(Runnable *runnable)
+{
+    ServerRunnable* server_runnable = dynamic_cast<ServerRunnable*>(runnable);
+    if (server_runnable) {
+        server_runnable->OnBeforeScheduling();
+    }
+    else {
+        throw ConnectionException("(Server::MarkRunnerStatusToWait) Bad runnable : " +
+            std::to_string(runnable->get_id()));
+    }
+}
+
 void Server::MarkRunnerStatusToDone(Runnable *runnable)
 {
-    _runnable_mark_as_done__safe.Push(runnable);
+    ServerRunnable* server_runnable = dynamic_cast<ServerRunnable*>(runnable);
+    if (server_runnable) {
+        server_runnable->OnFinished();
+        _runnable_mark_as_done__safe.Push(server_runnable);
+    }
+    else {
+        throw ConnectionException("(Server::MarkRunnerStatusToDone) Bad runnable : " +
+            std::to_string(runnable->get_id()));
+    }
 }
 
 void Server::EraseCompletedRunners()
@@ -194,7 +215,7 @@ void Server::EraseCompletedRunners()
 
     while (list.size())
     {
-        Runnable* item = list.front();
+        ServerRunnable* item = list.front();
         list.pop();
 
         auto it = std::find_if(_runnables_in_process.begin(), _runnables_in_process.end(), [&item](const auto& i) {

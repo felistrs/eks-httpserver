@@ -8,6 +8,7 @@
 #include <vector>
 #include <socket/socketTypes.h>
 
+#include "serverRunnable.h"
 #include "socket/socket.h"
 #include "thread_things/queueSafe.h"
 #include "thread_things/threadPool.h"
@@ -53,22 +54,23 @@ protected:
 
     virtual std::unique_ptr<ThreadPool> CreateThreadPool() = 0;
 
+    void MarkRunnerStatusToWaitExecution(Runnable *runnable);
+    void MarkRunnersStatusToInProgress(std::list<std::unique_ptr<ServerRunnable>> &list);
+    void MarkRunnerStatusToDone(Runnable *runnable);
+
     void CloseConnection(connection_handler handler);
 
 
-    QueueSafe<Runnable*> _runnable_mark_as_done__safe;
+    QueueSafe<ServerRunnable*> _runnable_mark_as_done__safe;
 
-    std::list<std::unique_ptr<Runnable>> _runnables;
-    std::list<std::unique_ptr<Runnable>> _runnables_in_process;
+    std::list<std::unique_ptr<ServerRunnable>> _runnables;
+    std::list<std::unique_ptr<ServerRunnable>> _runnables_in_process;
 
 
 private:
     void StartListening();
 
     void CloseAllConnections();
-
-    void ChangeRunnersStatusToInProgress(std::list<std::unique_ptr<Runnable>>& list);
-    void MarkRunnerStatusToDone(Runnable *runnable);
 
     void EraseCompletedRunners();
     virtual bool TestConnectionNeedsClose(const connection_descriptor *descr) const = 0;

@@ -8,11 +8,11 @@
 #include "queueSafe.h"
 
 
-#include "threadTask.h"
+#include "thread_things/threadTask.h"
 template class QueueSafe<ThreadTask>;
 
-#include "runnable.h"
-template class QueueSafe<Runnable*>;
+#include "serverRunnable.h"
+template class QueueSafe<server::ServerRunnable*>;
 
 
 #endif //SERVER_QUEUESAFE_INL_H

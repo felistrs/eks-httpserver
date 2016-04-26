@@ -5,6 +5,7 @@
 #ifndef SERVER_HTTPWORKERRUNNABLES_H
 #define SERVER_HTTPWORKERRUNNABLES_H
 
+#include "serverRunnable.h"
 #include "socket/socketTypes.h"
 #include "thread_things/runnable.h"
 
@@ -16,52 +17,41 @@ class HttpCommandProcessorInterface;
 enum class HttpWorkerRunnableType { ENone, EReadRequest, EWriteResponse, ESendData };
 
 
-class HttpServerReadRunnable : public Runnable {
-public:
-    virtual ~HttpServerReadRunnable() {}
-};
 
-
-class HttpServerWriteRunnable : public Runnable {
-public:
-    virtual ~HttpServerWriteRunnable() {}
-};
-
-
-class HttpServerReadRequestRunnable : public HttpServerReadRunnable {
+class HttpServerReadRequestRunnable : public ServerRunnable {
 public:
     virtual ~HttpServerReadRequestRunnable() {}
 
     HttpServerReadRequestRunnable(connection_handler connection) :
-            _connection(connection)
+        ServerRunnable(connection)
     {}
 
     virtual void run();
-
-private:
-    connection_handler _connection;
 };
 
 
-class HttpServerWriteResponseRunnable : public HttpServerWriteRunnable {
+class HttpServerWriteResponseRunnable : public ServerRunnable {
 public:
     virtual ~HttpServerWriteResponseRunnable() {}
 
     HttpServerWriteResponseRunnable(connection_handler connection, HttpCommandProcessorInterface *command_processor) :
-        _connection(connection),
+        ServerRunnable(connection),
         _command_processor(command_processor)
     {}
 
     virtual void run();
 
 private:
-    connection_handler _connection;
     HttpCommandProcessorInterface *_command_processor;
 };
 
 
-class HttpServerSendDataRunnable : public HttpServerReadRunnable {
+class HttpServerSendDataRunnable : public ServerRunnable {
 public:
+    HttpServerSendDataRunnable(connection_handler connection) :
+        ServerRunnable(connection)
+    {}
+
     virtual ~HttpServerSendDataRunnable() {}
 
     virtual void run();
