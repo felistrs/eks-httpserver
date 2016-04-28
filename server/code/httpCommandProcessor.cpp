@@ -1,22 +1,22 @@
 #include <assert.h>
-#include "../utils/logger.h"
+#include "utils/logger.h"
 
-#include "ftpCommandProcessor.h"
+#include "httpCommandProcessor.h"
 
-#include "../httpThings.h"
-#include "../utils/fileStorageReader.h"
-#include "../utils/htmlWrapper.h"
-#include "../utils/dateTime.h"
+#include "httpThings.h"
+#include "utils/fileStorageReader.h"
+#include "utils/htmlWrapper.h"
+#include "utils/dateTime.h"
 
 
 namespace server {
 
 
-FtpCommandProcessor::FtpCommandProcessor(FileStorageReader* file_storage_reader) :
+HttpCommandProcessor::HttpCommandProcessor(FileStorageReader* file_storage_reader) :
     _file_storage_reader(file_storage_reader)
 {}
 
-HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
+HttpResponse HttpCommandProcessor::ProcessRequest(HttpRequest *req)
 {
     assert(_file_storage_reader);
     assert(req);
@@ -68,7 +68,7 @@ HttpResponse FtpCommandProcessor::ProcessRequest(HttpRequest *req)
     return resp;
 }
 
-void FtpCommandProcessor::GenerateResponseWithFolderContent(
+void HttpCommandProcessor::GenerateResponseWithFolderContent(
         const HttpRequest *req, HttpResponse &resp,
         const std::vector<std::string> &files) const
 {
@@ -91,7 +91,7 @@ void FtpCommandProcessor::GenerateResponseWithFolderContent(
     resp.set_content(content);
 }
 
-bool FtpCommandProcessor::TestUnimplementedMethods(const HttpRequest *req) const
+bool HttpCommandProcessor::TestUnimplementedMethods(const HttpRequest *req) const
 {
     return req->request_type != "GET";
 }

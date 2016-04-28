@@ -1,7 +1,7 @@
+#include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <algorithm>
-#include <iostream> // !!!
+#include <iostream>
 
 #include "server.h"
 
@@ -22,9 +22,9 @@ Server::~Server()
 
 void Server::StartListening()
 {
-    _main_sock = sock::CreateConnectionForServer(_port);
+    _main_sock = CreateConnectionForServer(_port);
 
-    sock::StartListening(_main_sock, max_connections());
+    server::StartListening(_main_sock, max_connections());
 
     _is_running = true;
 }
@@ -46,14 +46,14 @@ void Server::Start()
         // Test for close
         {
             std::vector<connection_handler> conn_to_close;
-            forEachConnection([this, &conn_to_close](connection_handler handler, connection_descriptor *descr)
+            ForEachConnection([this, &conn_to_close](connection_handler handler, connection_descriptor *descr)
                               {
                                   if (this->TestConnectionNeedsClose(descr)) {
                                       conn_to_close.push_back(handler);
                                   }
                               });
             for (auto handler : conn_to_close) {
-                CloseConnection(handler);
+                CloseServerConnection(handler);
             }
         }
 
@@ -62,14 +62,14 @@ void Server::Start()
         std::vector<connection_handler> sock_conn = _comm_connections;
         sock_conn.push_back(_main_sock);
 
-        sock::ObtainIdleConnections(sock_conn, &conn_read, &conn_write, &conn_except);
+        ObtainIdleConnections(sock_conn, &conn_read, &conn_write, &conn_except);
 
         // Test connections for read
         for (auto conn_handler : conn_read)
         {
             if (conn_handler == _main_sock)
             {
-                auto new_connection = sock::AcceptNewConnection(_main_sock);
+                auto new_connection = AcceptNewConnection(_main_sock);
                 log("Accepted : "+to_string(new_connection));
 
                 _comm_connections.push_back(new_connection);
@@ -132,7 +132,7 @@ void Server::Stop()
     if (_is_running)
     {
         CloseAllConnections();
-        sock::CloseConnection(_main_sock);
+        CloseConnection(_main_sock);
         _main_sock = 0;
         _is_running = false;
     }
@@ -142,27 +142,27 @@ void Server::CloseAllConnections()
 {
     for (auto conn_handler : _comm_connections)
     {
-        sock::CloseConnection(conn_handler);
+        CloseConnection(conn_handler);
     }
     _comm_connections.clear();
 }
 
-void Server::CloseConnection(connection_handler handler) {
+void Server::CloseServerConnection(connection_handler handler) {
     auto it = std::find(_comm_connections.begin(), _comm_connections.end(), handler);
     if (it != _comm_connections.end())
         _comm_connections.erase(it);
 
     try {
-        sock::CloseConnection(handler);
+        CloseConnection(handler);
     }
     catch (...) {
-        error("(Server::CloseConnection) commnumication not closed : " +
+        error("(Server::CloseServerConnection) commnumication not closed : " +
               std::to_string(handler));
     }
 }
 
 DataBuffer Server::ReadBuffer(connection_handler conn) {
-    auto buff = sock::RecvBuffer(conn);
+    auto buff = server::ReadBuffer(conn);
 
     std::cout << "Read buffer sz: " << buff.data().size() << std::endl;
 //    debug_hex(buff.data());

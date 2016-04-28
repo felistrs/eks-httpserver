@@ -6,10 +6,10 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <socket/socketTypes.h>
+#include <connection/types.h>
 
 #include "serverRunnable.h"
-#include "socket/socket.h"
+#include "connection/socket.h"
 #include "thread_things/queueSafe.h"
 #include "thread_things/threadPool.h"
 #include "utils/eventListener.h"
@@ -58,7 +58,7 @@ protected:
     void MarkRunnersStatusToInProgress(std::list<std::unique_ptr<ServerRunnable>> &list);
     void MarkRunnerStatusToDone(Runnable *runnable);
 
-    void CloseConnection(connection_handler handler);
+    void CloseServerConnection(connection_handler handler);
 
 
     QueueSafe<ServerRunnable*> _runnable_mark_as_done__safe;

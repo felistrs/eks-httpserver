@@ -2,8 +2,9 @@
 // Created by felistrs on 26.04.16.
 //
 
+#include "connection/functions.h"
 #include "serverRunnable.h"
-#include "socket/socketTypes.h"
+#include "connection/types.h"
 
 
 namespace server {

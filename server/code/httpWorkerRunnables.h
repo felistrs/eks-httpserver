@@ -6,7 +6,7 @@
 #define SERVER_HTTPWORKERRUNNABLES_H
 
 #include "serverRunnable.h"
-#include "socket/socketTypes.h"
+#include "connection/types.h"
 #include "thread_things/runnable.h"
 
 

@@ -5,7 +5,7 @@
 #ifndef SERVER_SERVERRUNNABLE_H
 #define SERVER_SERVERRUNNABLE_H
 
-#include "socket/socketTypes.h"
+#include "connection/types.h"
 #include "thread_things/runnable.h"
 
 

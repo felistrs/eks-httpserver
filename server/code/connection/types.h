@@ -1,5 +1,5 @@
-#ifndef SOCKETS__SOCKET_TYPE_H
-#define SOCKETS__SOCKET_TYPE_H
+#ifndef CONNECTION__TYPES_H
+#define CONNECTION__TYPES_H
 
 #include <exception>
 #include <map>
@@ -10,18 +10,11 @@
 namespace server {
 
 
+class communication_type;
+
 
 using connection_handler = int;
 const connection_handler CONNECTION_HANDLER_INVALID = -1;
-
-
-enum class EConnectionType { ERead, EWrite, EException };
-
-
-class communication_type {
-public:
-    virtual ~communication_type() {}
-};
 
 
 struct connection_descriptor {
@@ -37,6 +30,11 @@ struct connection_descriptor {
 };
 
 
+class communication_type {
+public:
+    virtual ~communication_type() {}
+};
+
 
 class ConnectionException : public std::exception
 {
@@ -45,6 +43,12 @@ public:
         info(info)
     {}
 
+    virtual const char* what() const throw()
+    {
+        return info.c_str();
+    }
+
+private:
     std::string info;
 };
 
@@ -58,21 +62,19 @@ public:
         _error_str(err_str)
     {}
 
-    std::string info;
+    virtual const char* what() const throw()
+    {
+        return info.c_str();
+    }
+
     unsigned _error_code;
     std::string _error_str;
+
+private:
+    std::string info;
 };
-
-
-std::pair<connection_handler, connection_descriptor*> generateConnectionHandler();
-void releaseConnectionHandler(connection_handler handler);
-bool testIfAllHandlersReleased();
-
-void forEachConnection(std::function<void(connection_handler, connection_descriptor *)>);
-
-connection_descriptor* GetConnectionDescriptor(connection_handler handler);
 
 
 }
 
-#endif // SOCKETS__SOCKET_TYPE_H
+#endif // CONNECTION__TYPES_H

@@ -1,7 +1,8 @@
-#include <cstring>
 #include <assert.h>
 #include <chrono>
+#include <cstring>
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 #include "socket.h"
@@ -10,12 +11,95 @@
 #include "../utils/logger.h"
 
 
-namespace server { namespace sock {
+namespace server {
 
 
 const ssize_t c_read_buffer_sz = 2048; // TODO: more/less
 
 using socket_handler = int;
+
+
+static std::map<connection_handler, connection_descriptor> g_connection_descriptors =
+    std::map<connection_handler, connection_descriptor>();
+
+static connection_handler g_handler_counter = 0;
+static std::mutex g_lock_connection_descriptors;
+
+
+std::pair<connection_handler, connection_descriptor*> GenerateConnectionHandler()
+{
+    std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
+
+    bool found = false;
+    connection_handler handler = CONNECTION_HANDLER_INVALID;
+    connection_descriptor* descr = nullptr;
+
+    // Search for empty slot
+    connection_handler h_start = g_handler_counter;
+
+    for (;;)
+    {
+        ++g_handler_counter;
+
+        if (g_handler_counter == CONNECTION_HANDLER_INVALID)
+            ++g_handler_counter;
+
+        if (g_handler_counter == h_start)
+            break;
+
+        auto it = g_connection_descriptors.find(g_handler_counter);
+        if (it == g_connection_descriptors.end())
+        {
+            found = true;
+            break;
+        }
+    }
+
+    // New descriptor
+    if (found)
+    {
+        handler = g_handler_counter;
+        g_connection_descriptors[handler] = connection_descriptor();
+        descr = &g_connection_descriptors[handler];
+    }
+
+    return std::make_pair(handler, descr);
+}
+
+void ReleaseConnectionHandler(connection_handler handler)
+{
+    std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
+
+    if (handler != CONNECTION_HANDLER_INVALID)
+    {
+        auto it = g_connection_descriptors.find(handler);
+        if (it != g_connection_descriptors.end())
+            g_connection_descriptors.erase(it);
+    }
+}
+
+void ForEachConnection(std::function<void(connection_handler, connection_descriptor *)> call_back)
+{
+    for (auto& it : g_connection_descriptors)
+    {
+        connection_descriptor* descr = &it.second;
+        call_back(it.first, descr);
+    }
+}
+
+connection_descriptor* GetConnectionDescriptor(connection_handler handler)
+{
+    std::unique_lock<std::mutex> lock(g_lock_connection_descriptors);
+
+    auto it = g_connection_descriptors.find(handler);
+    if (it != g_connection_descriptors.end())
+        return &(it->second);
+    else
+    {
+        error("Request for bad handler");
+        return nullptr;
+    }
+}
 
 
 connection_handler CreateConnectionForServer(int port)
@@ -98,7 +182,7 @@ connection_handler CreateConnectionForServer(int port)
                     }
                     // unroll 3-rd (opt)
                 }
-                // unroll 2-nd (socket)
+                // unroll 2-nd (connection)
                 ::shutdown(socket_status, 2);
             }
             // unroll 1-st (addr)
@@ -107,7 +191,7 @@ connection_handler CreateConnectionForServer(int port)
         throw SocketException(err_info, sock_err, ::strerror(sock_err));
     }
 
-    auto p = generateConnectionHandler();
+    auto p = GenerateConnectionHandler();
     p.second->sock_handler = sock_descriptor;
     return p.first;
 }
@@ -148,7 +232,7 @@ connection_handler AcceptNewConnection(connection_handler handler)
             throw SocketException("Accept failed", err, ::strerror(err));
         }
 
-        auto p = generateConnectionHandler();
+        auto p = GenerateConnectionHandler();
         p.second->sock_handler = new_fd;
         result = p.first;
     }
@@ -164,14 +248,14 @@ void CloseConnection(int handler)
     auto descr = GetConnectionDescriptor(handler);
     if (descr)
     {
-        releaseConnectionHandler(handler);  // TODO: bug, need lock
+        ReleaseConnectionHandler(handler);  // TODO: bug, need lock
 
         int status = ::shutdown(descr->sock_handler, 2);
 
         if (status == -1)
         {
             auto err = errno;
-            throw SocketException("Close socket failed", err, ::strerror(err));
+            throw SocketException("Close connection failed", err, ::strerror(err));
         }
     }
     else {
@@ -179,7 +263,7 @@ void CloseConnection(int handler)
     }
 }
 
-void SendBuffer(connection_handler handler, DataBuffer* buffer)
+void WriteBuffer(connection_handler handler, DataBuffer *buffer)
 {
     using namespace std;
 
@@ -204,11 +288,11 @@ void SendBuffer(connection_handler handler, DataBuffer* buffer)
         }
     }
     else {
-        throw ConnectionException("SendBuffer: handler is invalid");
+        throw ConnectionException("WriteBuffer: handler is invalid");
     }
 }
 
-DataBuffer RecvBuffer(connection_handler handler)
+DataBuffer ReadBuffer(connection_handler handler)
 {
     using namespace std;
 
@@ -224,7 +308,7 @@ DataBuffer RecvBuffer(connection_handler handler)
         if (read_sz == -1)
         {
             auto err = errno;
-            throw SocketException("RecvBuffer failed", err, ::strerror(err));
+            throw SocketException("ReadBuffer failed", err, ::strerror(err));
         }
 
         if (read_sz)
@@ -236,7 +320,7 @@ DataBuffer RecvBuffer(connection_handler handler)
         }
     }
     else {
-        throw ConnectionException("RecvBuffer: handler is invalid");
+        throw ConnectionException("ReadBuffer: handler is invalid");
     }
 }
 
@@ -354,4 +438,4 @@ void ObtainIdleConnections(
 }
 
 
-} }
+}

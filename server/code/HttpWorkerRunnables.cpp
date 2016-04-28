@@ -8,8 +8,8 @@
 #include "httpServer.h"
 #include "httpThings.h"
 #include "httpWorkerRunnables.h"
-#include "socket/socketFunctions.h"
-#include "socket/socketTypes.h"
+#include "connection/functions.h"
+#include "connection/types.h"
 #include "thread_things/runnable.h"
 #include "utils/dataBuffer.h"
 
@@ -55,7 +55,7 @@ void HttpServerWriteResponseRunnable::run() {
 
     // Send responce
     auto buffer = response.Generate();
-    sock::SendBuffer(_connection, &buffer);
+    WriteBuffer(_connection, &buffer);
 
     // change state
     if (response.DoCloseConnection()) {

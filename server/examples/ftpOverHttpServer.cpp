@@ -2,7 +2,7 @@
 #include <iostream>
 #include <memory>
 
-#include "ftp_over_http/ftpCommandProcessor.h"
+#include "httpCommandProcessor.h"
 #include "../code/httpServer.h"
 #include "utils/fileStorageReader.h"
 #include "utils/logger.h"
@@ -11,11 +11,19 @@
 #include "utils/singletonContainer.h"
 
 
+// return values
+const int BAD_ARGUMENT = -1;
+const int EXCEPTION_SOCKET = -2;
+const int EXCEPTION_CONNECTION = -3;
+const int EXCEPTION_UNSPECIFIED = -4;
+
 
 int main(int argc, char **argv)
 {
     using namespace std;
     using namespace server;
+
+    int app_result = 0;
 
     // Event registration
     ProgramBreakEventProvider program_break_event_povider;
@@ -51,6 +59,7 @@ int main(int argc, char **argv)
         if (values.empty())
         {
             error("Serve path is not specified.");
+            app_result = BAD_ARGUMENT;
         }
         else {
             std::string serve_path = values[0];
@@ -59,8 +68,8 @@ int main(int argc, char **argv)
             try {
                 unique_ptr<FileStorageReader> fs_reader(
                         new FileStorageReader(serve_path));
-                unique_ptr<FtpCommandProcessor> command_processor(
-                        new FtpCommandProcessor(fs_reader.get()));
+                unique_ptr<HttpCommandProcessor> command_processor(
+                        new HttpCommandProcessor(fs_reader.get()));
 
                 HttpServer http_server(command_processor.get());
                 http_server.set_listening_port(port_number);
@@ -70,15 +79,18 @@ int main(int argc, char **argv)
 
                 http_server.Start();
             }
-            catch (SocketException &e) // TODO: here ?
+            catch (SocketException &e)
             {
-                error("Socket exception: " + e.info + " / " + e._error_str + " / " + e.what());
+                error(std::string("Socket exception: ") + e.what() + " / " + e._error_str);
+                app_result = EXCEPTION_SOCKET;
             }
             catch (ConnectionException &e) {
-                error("Connection exception: " + e.info + " / " + e.what());
+                error(std::string("Connection exception: ") + e.what());
+                app_result = EXCEPTION_CONNECTION;
             }
             catch (std::exception &e) {
                 error(string("Server exception: ") + e.what());
+                app_result = EXCEPTION_UNSPECIFIED;
             }
 
             log("END.");
@@ -88,5 +100,5 @@ int main(int argc, char **argv)
     SingletonContainer::ReleaseAllSingletones();
     SingletonContainer::ReleaseSingletonContainer();
 
-    return 0;
+    return app_result;
 }
